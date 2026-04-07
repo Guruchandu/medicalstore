@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="MediStore – Quality medicines delivered to your doorstep. Browse tablets, syrups, vitamins and more at the best prices.">
+    <title>MediStore – Your Trusted Online Pharmacy</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- ── Navbar ── -->
+    <nav class="medistore-nav">
+        <a href="index.html" class="nav-logo">
+            <div class="logo-icon">M</div>
+            <span class="logo-text">Medi<span>Store</span></span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link-item active">Home</a>
+            <a href="products.html" class="nav-link-item">Products</a>
+            <a href="#conditions" class="nav-link-item">Conditions</a>
+            <button id="darkToggle" class="dark-toggle-btn" onclick="toggleMode()" title="Toggle dark mode">🌙</button>
+            <div id="navUserArea"></div>
+            <a href="cart.html" class="nav-cart-btn">
+                <i class="fa fa-shopping-cart"></i> Cart
+                <span class="cart-badge" id="cartCount">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ── Hero ── -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-md-6">
+                    <div class="hero-badge">✅ Trusted by 50,000+ customers</div>
+                    <h1 class="hero-title">Your Health,<br><span class="highlight">Our Priority</span></h1>
+                    <p class="hero-subtitle">Quality medicines delivered to your doorstep. Browse trusted brands at the
+                        best prices — fast, safe & reliable.</p>
+                    <div class="hero-actions">
+                        <a href="products.html" class="btn-hero-primary"><i class="fa fa-pills"></i> Shop Now</a>
+                        <a href="#conditions" class="btn-hero-secondary"><i class="fa fa-stethoscope"></i> Browse
+                            Conditions</a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <div class="stat-num">500+</div>
+                            <div class="stat-label">Medicines</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="stat-num">24hr</div>
+                            <div class="stat-label">Delivery</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="stat-num">100%</div>
+                            <div class="stat-label">Genuine Products</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="hero-img-wrap">
+                        <div class="hero-img-glow"></div>
+                        <img src="../public/paracetamol-tablet-500-mg-500x500.webp" class="hero-img"
+                            alt="Paracetamol 500mg Tablet">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Trust Strip ── -->
+    <div class="trust-strip">
+        <div class="container">
+            <div class="row g-3">
+                <div class="col-6 col-md-3">
+                    <div class="trust-item">
+                        <div class="trust-icon">🚚</div>
+                        <div class="trust-text"><strong>Free Delivery</strong><small>On orders above ₹499</small></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="trust-item">
+                        <div class="trust-icon">✅</div>
+                        <div class="trust-text"><strong>100% Genuine</strong><small>Verified medicines</small></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="trust-item">
+                        <div class="trust-icon">🔒</div>
+                        <div class="trust-text"><strong>Secure Payment</strong><small>Safe & encrypted</small></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="trust-item">
+                        <div class="trust-icon">🔄</div>
+                        <div class="trust-text"><strong>Easy Returns</strong><small>Hassle-free process</small></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Categories ── -->
+    <section class="section-gap">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Browse By Type</div>
+                <h2 class="section-title">Shop by Category</h2>
+                <p class="section-subtitle">Find exactly what you're looking for</p>
+            </div>
+            <div class="row g-3">
+                <div class="col-6 col-md-3">
+                    <div class="category-card">
+                        <div class="category-icon" style="background:#dcfce7">💊</div>
+                        <div class="category-name">Tablets</div>
+                        <div class="category-count">120+ items</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="category-card">
+                        <div class="category-icon" style="background:#dbeafe">🧴</div>
+                        <div class="category-name">Syrups</div>
+                        <div class="category-count">80+ items</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="category-card">
+                        <div class="category-icon" style="background:#fef3c7">🍊</div>
+                        <div class="category-name">Vitamins</div>
+                        <div class="category-count">60+ items</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="category-card">
+                        <div class="category-icon" style="background:#fce7f3">🩺</div>
+                        <div class="category-name">Devices</div>
+                        <div class="category-count">40+ items</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── Health Conditions ── -->
+    <section class="section-gap" id="conditions">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Health Conditions</div>
+                <h2 class="section-title">Explore by Condition</h2>
+                <p class="section-subtitle">Find the right medicines for your health needs</p>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-4 col-sm-6">
+                    <a href="products.html" class="condition-card">
+                        <div class="condition-icon" style="background:#dbeafe">🤧</div>
+                        <div class="condition-name">Cold &amp; Cough</div>
+                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="products.html" class="condition-card">
+                        <div class="condition-icon" style="background:#fee2e2">❤️</div>
+                        <div class="condition-name">Blood Pressure (BP)</div>
+                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="products.html" class="condition-card">
+                        <div class="condition-icon" style="background:#fef3c7">🩸</div>
+                        <div class="condition-name">Diabetes / Sugar</div>
+                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="products.html" class="condition-card">
+                        <div class="condition-icon" style="background:#dcfce7">🌡️</div>
+                        <div class="condition-name">Fever</div>
+                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="products.html" class="condition-card">
+                        <div class="condition-icon" style="background:#ede9fe">🧠</div>
+                        <div class="condition-name">Headache</div>
+                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="products.html" class="condition-card">
+                        <div class="condition-icon" style="background:#fce7f3">🫃</div>
+                        <div class="condition-name">Stomach &amp; Digestion</div>
+                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── Popular Medicines ── -->
+    <section class="section-gap">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-end mb-4">
+                <div class="section-header mb-0">
+                    <div class="section-tag">Best Sellers</div>
+                    <h2 class="section-title">Popular Medicines</h2>
+                </div>
+                <a href="products.html" class="nav-link-item">View all <i class="fa fa-arrow-right ms-1"></i></a>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4 col-sm-6">
+                    <div class="product-card">
+                        <div class="product-card-img-wrap">
+                            <img src="../public/paracetamol-tablet-500-mg-500x500.webp" alt="Paracetamol">
+                        </div>
+                        <div class="product-card-body">
+                            <span class="product-badge badge-otc">OTC</span>
+                            <div class="product-name">Paracetamol 500mg</div>
+                            <div class="product-desc">Fever & pain relief · Strip of 10 tablets</div>
+                            <div class="product-footer">
+                                <div class="product-price">₹50 <span class="old-price">₹65</span></div>
+                                <button class="btn-add-cart" onclick="addToCart('Paracetamol 500mg', 50)">
+                                    <i class="fa fa-plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="product-card">
+                        <div class="product-card-img-wrap">
+                            <img src="../public/cough.png" alt="Cough Syrup">
+                        </div>
+                        <div class="product-card-body">
+                            <span class="product-badge badge-otc">OTC</span>
+                            <div class="product-name">Cough Syrup 100ml</div>
+                            <div class="product-desc">Relieves dry & wet cough</div>
+                            <div class="product-footer">
+                                <div class="product-price">₹120 <span class="old-price">₹150</span></div>
+                                <button class="btn-add-cart" onclick="addToCart('Cough Syrup', 120)">
+                                    <i class="fa fa-plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <div class="product-card">
+                        <div class="product-card-img-wrap" style="background:#fef9ec">
+                            <div style="font-size:5rem;line-height:1">🍊</div>
+                        </div>
+                        <div class="product-card-body">
+                            <span class="product-badge badge-new">NEW</span>
+                            <div class="product-name">Vitamin C 1000mg</div>
+                            <div class="product-desc">Immunity booster · 30 tablets</div>
+                            <div class="product-footer">
+                                <div class="product-price">₹200 <span class="old-price">₹250</span></div>
+                                <button class="btn-add-cart" onclick="addToCart('Vitamin C 1000mg', 200)">
+                                    <i class="fa fa-plus"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Footer ── -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="footer-brand">
+                        <div class="logo-text">Medi<span>Store</span></div>
+                    </div>
+                    <p class="footer-desc">Your trusted online pharmacy. Quality medicines delivered to your doorstep,
+                        fast & safe.</p>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="footer-heading">Quick Links</div>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="cart.html">Cart</a></li>
+                        <li><a href="checkout.html">Checkout</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="footer-heading">Categories</div>
+                    <ul class="footer-links">
+                        <li><a href="products.html">Tablets</a></li>
+                        <li><a href="products.html">Syrups</a></li>
+                        <li><a href="products.html">Vitamins</a></li>
+                        <li><a href="products.html">Devices</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <div class="footer-heading">Contact Us</div>
+                    <ul class="footer-links">
+                        <li><a href="#">📧 support@medistore.in</a></li>
+                        <li><a href="#">📞 1800-123-4567</a></li>
+                        <li><a href="#">🕗 Mon–Sat, 9am – 6pm</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2025 MediStore. All rights reserved.</span>
+                <span>Made with ❤️ for better health</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ── Auth Modal ── -->
+    <div class="auth-modal-overlay" id="authModal" onclick="handleOverlayClick(event)">
+        <div class="auth-modal-card">
+            <div class="auth-modal-header">
+                <div class="auth-modal-logo">M</div>
+                <div class="auth-modal-title">Welcome to MediStore</div>
+                <div class="auth-modal-subtitle">Login or create an account to continue</div>
+                <button class="auth-modal-close" onclick="closeAuthModal()">✕</button>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab auth-tab-active" id="loginTab" onclick="switchTab('login')">Login</button>
+                <button class="auth-tab" id="signupTab" onclick="switchTab('signup')">Sign Up</button>
+            </div>
+            <p class="auth-error" id="authError" style="padding:10px 24px 0;"></p>
+
+            <!-- Login Form -->
+            <form class="auth-form-wrap" id="loginForm" onsubmit="handleLogin(event)">
+                <div class="auth-input-group">
+                    <label class="auth-label">Email Address</label>
+                    <input type="email" class="auth-input" id="loginEmail" placeholder="you@example.com" required>
+                </div>
+                <div class="auth-input-group">
+                    <label class="auth-label">Password</label>
+                    <input type="password" class="auth-input" id="loginPassword" placeholder="Your password" required>
+                </div>
+                <button type="submit" class="auth-submit-btn">
+                    <i class="fa fa-sign-in-alt"></i> Login
+                </button>
+                <button type="button" class="google-auth-btn" onclick="mockGoogleAuth()">
+                    <svg class="google-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Continue with Google
+                </button>
+                <div class="auth-divider">or</div>
+                <p style="text-align:center;font-size:0.82rem;color:var(--gray-500);margin:0;">
+                    Don't have an account?
+                    <button type="button" onclick="switchTab('signup')"
+                        style="background:none;border:none;color:var(--green-600);font-weight:700;cursor:pointer;font-size:0.82rem;padding:0;">
+                        Sign Up
+                    </button>
+                </p>
+            </form>
+
+            <!-- Sign Up Form -->
+            <form class="auth-form-wrap" id="signupForm" style="display:none;" onsubmit="handleSignup(event)">
+                <div class="auth-input-group">
+                    <label class="auth-label">Full Name</label>
+                    <input type="text" class="auth-input" id="signupName" placeholder="Ravi Kumar" required>
+                </div>
+                <div class="auth-input-group">
+                    <label class="auth-label">Email Address</label>
+                    <input type="email" class="auth-input" id="signupEmail" placeholder="you@example.com" required>
+                </div>
+                <div class="auth-input-group">
+                    <label class="auth-label">Password</label>
+                    <input type="password" class="auth-input" id="signupPassword" placeholder="Min. 6 characters" required minlength="6">
+                </div>
+                <div class="auth-input-group">
+                    <label class="auth-label">Confirm Password</label>
+                    <input type="password" class="auth-input" id="signupConfirm" placeholder="Repeat password" required>
+                </div>
+                <button type="submit" class="auth-submit-btn">
+                    <i class="fa fa-user-plus"></i> Create Account
+                </button>
+                <button type="button" class="google-auth-btn" onclick="mockGoogleAuth()">
+                    <svg class="google-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Continue with Google
+                </button>
+                <div class="auth-divider">or</div>
+                <p style="text-align:center;font-size:0.82rem;color:var(--gray-500);margin:0;">
+                    Already have an account?
+                    <button type="button" onclick="switchTab('login')"
+                        style="background:none;border:none;color:var(--green-600);font-weight:700;cursor:pointer;font-size:0.82rem;padding:0;">
+                        Login
+                    </button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script>
+        function handleOverlayClick(e) {
+            if (e.target === document.getElementById('authModal')) closeAuthModal();
+        }
+    </script>
+</body>
+
+</html>
