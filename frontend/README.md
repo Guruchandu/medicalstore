@@ -16,6 +16,14 @@ MediStore is a premium, professional-grade medical store website designed to pro
 -   **Responsive Design**: Fully optimized for mobile, tablet, and desktop views.
 -   **Dark Mode**: A beautiful, premium dark theme for comfortable nighttime browsing.
 
+## 🔄 User Workflow
+
+1.  **Discovery**: Users browse medicines via the home page, product gallery, or by selecting specific health conditions.
+2.  **Selection**: Items can be saved to a **Wishlist** for future reference or added directly to the **Shopping Cart**.
+3.  **Authentication**: Users log in (or sign up) via a premium mock-Google authentication flow to manage their personal data.
+4.  **Checkout**: A streamlined multi-step process for entering delivery details and placing a mock order.
+5.  **Management**: After ordering, users can track their shipment, view order history, and manage their profile through the **User Dashboard**.
+
 ## 🛠️ Technology Stack
 
 -   **Frontend**: HTML5, CSS3 (Vanilla), JavaScript (Vanilla)
