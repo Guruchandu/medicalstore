@@ -8,6 +8,27 @@ function addToCart(name, price) {
     updateCartBadge();
 }
 
+/* ─── Wishlist ─── */
+let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+
+function addToWishlist(name, price, img) {
+    const exists = wishlist.find(i => i.name === name);
+    if (exists) {
+        showToast('ℹ️ ' + name + ' is already in wishlist');
+        return;
+    }
+    wishlist.push({ name, price, img });
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    showToast('❤️ ' + name + ' added to wishlist!');
+}
+
+function removeFromWishlist(name) {
+    wishlist = wishlist.filter(i => i.name !== name);
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    showToast('❌ Removed from wishlist');
+    if (typeof renderWishlist === 'function') renderWishlist();
+}
+
 function updateCartBadge() {
     const badge = document.getElementById('cartCount');
     if (badge) {
@@ -69,11 +90,11 @@ function loginUser(email, password) {
 
 /* ─── Google Account Picker ─── */
 const GOOGLE_ACCOUNTS = [
-    { name: 'Ravi Kumar',    email: 'ravi.kumar@gmail.com',   color: '#4285F4' },
-    { name: 'Priya Sharma',  email: 'priya.sharma@gmail.com', color: '#34A853' },
-    { name: 'Arjun Mehta',   email: 'arjun.mehta@gmail.com',  color: '#EA4335' },
-    { name: 'Sneha Patel',   email: 'sneha.patel@gmail.com',  color: '#FBBC05' },
-    { name: 'Demo User',     email: 'demo.user@gmail.com',    color: '#9c27b0' },
+    { name: 'Ravi Kumar', email: 'ravi.kumar@gmail.com', color: '#4285F4' },
+    { name: 'Priya Sharma', email: 'priya.sharma@gmail.com', color: '#34A853' },
+    { name: 'Arjun Mehta', email: 'arjun.mehta@gmail.com', color: '#EA4335' },
+    { name: 'Sneha Patel', email: 'sneha.patel@gmail.com', color: '#FBBC05' },
+    { name: 'Demo User', email: 'demo.user@gmail.com', color: '#9c27b0' },
 ];
 
 function getInitials(name) {
@@ -90,17 +111,17 @@ function mockGoogleAuth() {
 
 function openGooglePicker() {
     const overlay = document.getElementById('googlePickerOverlay');
-    const list    = document.getElementById('googleAccountsList');
+    const list = document.getElementById('googleAccountsList');
     if (!overlay || !list) return;
 
     // Load accounts — include any custom accounts added via "Use another account"
-    const extra   = JSON.parse(localStorage.getItem('ms_extra_google') || '[]');
+    const extra = JSON.parse(localStorage.getItem('ms_extra_google') || '[]');
     const accounts = [...GOOGLE_ACCOUNTS, ...extra];
     const lastEmail = localStorage.getItem('ms_last_google');
 
     list.innerHTML = accounts.map(acc => `
         <button class="google-account-item ${acc.email === lastEmail ? 'active-account' : ''}"
-                onclick="selectGoogleAccount('${acc.name.replace(/'/g,"\\'")}','${acc.email}','${acc.color}')">
+                onclick="selectGoogleAccount('${acc.name.replace(/'/g, "\\'")}','${acc.email}','${acc.color}')">
             <div class="google-account-avatar" style="background:${acc.color}">
                 ${getInitials(acc.name)}
             </div>
@@ -141,11 +162,11 @@ function addAnotherGoogleAccount() {
     const email = prompt('Enter your Gmail address:');
     if (!email || !email.includes('@')) return;
 
-    const name  = prompt('Enter your name:');
+    const name = prompt('Enter your name:');
     if (!name || !name.trim()) return;
 
-    const colors = ['#e91e63','#ff5722','#673ab7','#009688','#795548'];
-    const color  = colors[Math.floor(Math.random() * colors.length)];
+    const colors = ['#e91e63', '#ff5722', '#673ab7', '#009688', '#795548'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
 
     const extra = JSON.parse(localStorage.getItem('ms_extra_google') || '[]');
     // avoid duplicates
@@ -164,6 +185,23 @@ function logoutUser() {
     location.reload();
 }
 
+function toggleUserDropdown(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('userDropdownMenu');
+    if (menu) menu.classList.toggle('active');
+}
+
+// Close dropdown when clicking outside
+window.addEventListener('click', (e) => {
+    const menu = document.getElementById('userDropdownMenu');
+    const btn = document.querySelector('.user-dropdown-btn');
+    if (menu && menu.classList.contains('active')) {
+        if (!menu.contains(e.target) && !btn.contains(e.target)) {
+            menu.classList.remove('active');
+        }
+    }
+});
+
 /* ─── Update Navbar user state ─── */
 function updateNavUser() {
     updateCartBadge();
@@ -172,18 +210,37 @@ function updateNavUser() {
     const user = getUser();
     if (user) {
         userArea.innerHTML = `
-            <div style="display:flex;align-items:center;gap:8px;">
-                <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);
-                    color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">
-                    ${user.name.charAt(0).toUpperCase()}
-                </div>
-                <span style="font-size:0.85rem;font-weight:600;color:var(--gray-700);">${user.name.split(' ')[0]}</span>
-                <button onclick="logoutUser()" title="Logout"
-                    style="background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:0.75rem;padding:4px 8px;
-                    border-radius:6px;transition:all 0.2s;" onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444'"
-                    onmouseout="this.style.background='none';this.style.color='var(--gray-400)'">
-                    Logout
+            <div class="user-dropdown-container">
+                <button class="user-dropdown-btn" onclick="toggleUserDropdown(event)">
+                    <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);
+                        color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;">
+                        ${user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span style="font-size:0.85rem;font-weight:600;color:var(--gray-700);">${user.name.split(' ')[0]}</span>
+                    <i class="fa fa-chevron-down" style="font-size:0.7rem;color:var(--gray-400);"></i>
                 </button>
+                <div class="user-dropdown-menu" id="userDropdownMenu">
+                    <div style="padding:10px 14px;border-bottom:1px solid var(--gray-100);margin-bottom:5px;">
+                        <div style="font-size:0.85rem;font-weight:700;color:var(--gray-900);line-height:1.2;">${user.name}</div>
+                        <div style="font-size:0.75rem;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${user.email}</div>
+                    </div>
+                    <button class="dropdown-item" onclick="location.href='dashboard.html?tab=profile'">
+                        <i class="fa fa-user-circle"></i> Profile
+                    </button>
+                    <button class="dropdown-item" onclick="location.href='dashboard.html?tab=orders'">
+                        <i class="fa fa-box"></i> My Orders
+                    </button>
+                    <button class="dropdown-item" onclick="location.href='dashboard.html?tab=wishlist'">
+                        <i class="fa fa-heart"></i> Wishlist
+                    </button>
+                    <button class="dropdown-item" onclick="location.href='dashboard.html?tab=tracking'">
+                        <i class="fa fa-truck-fast"></i> Order Tracking
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item logout-danger" onclick="logoutUser()">
+                        <i class="fa fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
             </div>`;
     } else {
         userArea.innerHTML = `
@@ -213,16 +270,16 @@ function closeAuthModal() {
 function switchTab(tab) {
     document.getElementById('loginTab').classList.toggle('auth-tab-active', tab === 'login');
     document.getElementById('signupTab').classList.toggle('auth-tab-active', tab === 'signup');
-    document.getElementById('loginForm').style.display  = tab === 'login'  ? 'flex' : 'none';
+    document.getElementById('loginForm').style.display = tab === 'login' ? 'flex' : 'none';
     document.getElementById('signupForm').style.display = tab === 'signup' ? 'flex' : 'none';
     document.getElementById('authError').textContent = '';
 }
 
 function handleLogin(e) {
     e.preventDefault();
-    const email    = document.getElementById('loginEmail').value.trim();
+    const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    const result   = loginUser(email, password);
+    const result = loginUser(email, password);
     if (!result.ok) {
         document.getElementById('authError').textContent = result.msg;
         return;
@@ -236,10 +293,10 @@ function handleLogin(e) {
 
 function handleSignup(e) {
     e.preventDefault();
-    const name     = document.getElementById('signupName').value.trim();
-    const email    = document.getElementById('signupEmail').value.trim();
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
     const password = document.getElementById('signupPassword').value;
-    const confirm  = document.getElementById('signupConfirm').value;
+    const confirm = document.getElementById('signupConfirm').value;
     if (password !== confirm) {
         document.getElementById('authError').textContent = 'Passwords do not match.';
         return;
