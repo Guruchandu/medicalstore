@@ -67,39 +67,97 @@ function loginUser(email, password) {
     return { ok: true, user };
 }
 
-/* ─── Mock Google Auth ─── */
+/* ─── Google Account Picker ─── */
+const GOOGLE_ACCOUNTS = [
+    { name: 'Ravi Kumar',    email: 'ravi.kumar@gmail.com',   color: '#4285F4' },
+    { name: 'Priya Sharma',  email: 'priya.sharma@gmail.com', color: '#34A853' },
+    { name: 'Arjun Mehta',   email: 'arjun.mehta@gmail.com',  color: '#EA4335' },
+    { name: 'Sneha Patel',   email: 'sneha.patel@gmail.com',  color: '#FBBC05' },
+    { name: 'Demo User',     email: 'demo.user@gmail.com',    color: '#9c27b0' },
+];
+
+function getInitials(name) {
+    const parts = name.trim().split(' ');
+    return parts.length >= 2
+        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+        : parts[0].slice(0, 2).toUpperCase();
+}
+
 function mockGoogleAuth() {
-    // Simulate a Google account pick (demo only — no real OAuth)
-    const googleAccounts = [
-        { name: 'Ravi Kumar',    email: 'ravi.kumar@gmail.com'    },
-        { name: 'Priya Sharma',  email: 'priya.sharma@gmail.com'  },
-        { name: 'Arjun Mehta',   email: 'arjun.mehta@gmail.com'   },
-        { name: 'Sneha Patel',   email: 'sneha.patel@gmail.com'   },
-        { name: 'Demo User',     email: 'demo.user@gmail.com'     },
-    ];
+    // Show the account picker instead of instant sign-in
+    openGooglePicker();
+}
 
-    // Use existing Google user if already stored, else pick first available
-    let googleUsers = JSON.parse(localStorage.getItem('ms_google_users') || '[]');
-    let user;
+function openGooglePicker() {
+    const overlay = document.getElementById('googlePickerOverlay');
+    const list    = document.getElementById('googleAccountsList');
+    if (!overlay || !list) return;
 
-    // Check if any Google user is already "logged in" (reuse same account on repeated clicks)
-    const lastGoogleEmail = localStorage.getItem('ms_last_google');
-    if (lastGoogleEmail) {
-        user = googleAccounts.find(u => u.email === lastGoogleEmail) || googleAccounts[0];
-    } else {
-        user = googleAccounts[0];
-        localStorage.setItem('ms_last_google', user.email);
-    }
+    // Load accounts — include any custom accounts added via "Use another account"
+    const extra   = JSON.parse(localStorage.getItem('ms_extra_google') || '[]');
+    const accounts = [...GOOGLE_ACCOUNTS, ...extra];
+    const lastEmail = localStorage.getItem('ms_last_google');
 
-    // Save as logged-in user
-    localStorage.setItem('ms_user', JSON.stringify({ name: user.name, email: user.email, google: true }));
+    list.innerHTML = accounts.map(acc => `
+        <button class="google-account-item ${acc.email === lastEmail ? 'active-account' : ''}"
+                onclick="selectGoogleAccount('${acc.name.replace(/'/g,"\\'")}','${acc.email}','${acc.color}')">
+            <div class="google-account-avatar" style="background:${acc.color}">
+                ${getInitials(acc.name)}
+            </div>
+            <div class="google-account-info">
+                <div class="google-account-name">${acc.name}</div>
+                <div class="google-account-email">${acc.email}</div>
+            </div>
+            <i class="fa fa-check google-account-check"></i>
+        </button>
+    `).join('');
 
+    overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeGooglePicker() {
+    const overlay = document.getElementById('googlePickerOverlay');
+    if (overlay) overlay.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function handlePickerOverlayClick(e) {
+    if (e.target === document.getElementById('googlePickerOverlay')) closeGooglePicker();
+}
+
+function selectGoogleAccount(name, email, color) {
+    localStorage.setItem('ms_last_google', email);
+    localStorage.setItem('ms_user', JSON.stringify({ name, email, google: true, color }));
+
+    closeGooglePicker();
     closeAuthModal();
     updateNavUser();
-    showToast('🟢 Signed in with Google as ' + user.name);
-
+    showToast('🟢 Signed in as ' + name);
     if (typeof afterLoginCallback === 'function') afterLoginCallback();
 }
+
+function addAnotherGoogleAccount() {
+    const email = prompt('Enter your Gmail address:');
+    if (!email || !email.includes('@')) return;
+
+    const name  = prompt('Enter your name:');
+    if (!name || !name.trim()) return;
+
+    const colors = ['#e91e63','#ff5722','#673ab7','#009688','#795548'];
+    const color  = colors[Math.floor(Math.random() * colors.length)];
+
+    const extra = JSON.parse(localStorage.getItem('ms_extra_google') || '[]');
+    // avoid duplicates
+    if (!extra.find(a => a.email === email)) {
+        extra.push({ name: name.trim(), email: email.trim(), color });
+        localStorage.setItem('ms_extra_google', JSON.stringify(extra));
+    }
+
+    // Auto-select the newly added account
+    selectGoogleAccount(name.trim(), email.trim(), color);
+}
+
 
 function logoutUser() {
     localStorage.removeItem('ms_user');

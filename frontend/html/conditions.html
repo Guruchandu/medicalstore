@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Browse medicines by health condition on MediStore – Cold, Fever, Diabetes, BP, Skin, Allergies and more.">
+    <title>Health Conditions – MediStore</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* ── Conditions Page Specifics ── */
+        .cond-hero {
+            background: linear-gradient(135deg, #0f7a45 0%, #16a34a 50%, #22c55e 100%);
+            padding: 56px 0 44px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cond-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='15'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .cond-hero-inner { position: relative; z-index: 1; }
+
+        .cond-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .cond-breadcrumb a {
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .cond-breadcrumb a:hover { color: white; }
+        .cond-breadcrumb .sep { opacity: 0.5; }
+        .cond-breadcrumb .current { color: white; font-weight: 600; }
+
+        .cond-hero-title {
+            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+        }
+
+        .cond-hero-sub {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.85);
+            max-width: 500px;
+            margin-bottom: 28px;
+        }
+
+        .cond-stat-row {
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+
+        .cond-stat {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 10px;
+            padding: 10px 20px;
+            backdrop-filter: blur(6px);
+            text-align: center;
+        }
+
+        .cond-stat .num { font-size: 1.2rem; font-weight: 800; color: white; }
+        .cond-stat .lbl { font-size: 0.72rem; color: rgba(255,255,255,0.75); }
+
+        /* Search bar inside hero */
+        .cond-search-wrap {
+            position: relative;
+            max-width: 480px;
+        }
+
+        .cond-search-wrap input {
+            width: 100%;
+            padding: 14px 50px 14px 20px;
+            border-radius: 12px;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.92rem;
+            color: #374151;
+            outline: none;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .cond-search-wrap .cond-search-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        /* Category group title */
+        .group-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0 0 10px;
+            border-bottom: 1px solid var(--gray-100);
+            margin-bottom: 18px;
+        }
+
+        /* Big condition card */
+        .cond-card {
+            background: white;
+            border-radius: 16px;
+            border: 1.5px solid var(--gray-200);
+            padding: 22px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(.4,0,.2,1);
+            text-decoration: none;
+            color: inherit;
+            height: 100%;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+
+        .cond-card:hover {
+            border-color: var(--green-500);
+            box-shadow: 0 8px 28px rgba(34,197,94,0.16);
+            transform: translateY(-3px);
+            color: inherit;
+        }
+
+        .cond-card-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.55rem;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+
+        .cond-card:hover .cond-card-icon { transform: scale(1.08); }
+
+        .cond-card-body { flex: 1; min-width: 0; }
+
+        .cond-card-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--gray-900);
+            margin-bottom: 3px;
+        }
+
+        .cond-card-desc {
+            font-size: 0.76rem;
+            color: var(--gray-400);
+            line-height: 1.5;
+        }
+
+        .cond-card-count {
+            background: var(--green-50);
+            color: var(--green-700);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 99px;
+            white-space: nowrap;
+            margin-top: 6px;
+            display: inline-block;
+        }
+
+        .cond-card-arrow {
+            color: var(--gray-300);
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .cond-card:hover .cond-card-arrow {
+            color: var(--green-500);
+            transform: translateX(4px);
+        }
+
+        /* Info banner */
+        .cond-info-banner {
+            background: linear-gradient(135deg, var(--green-50), #dbeafe);
+            border: 1.5px solid var(--green-200);
+            border-radius: 16px;
+            padding: 24px 28px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 48px;
+        }
+
+        .cond-info-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .cond-info-text h5 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+
+        .cond-info-text p {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+
+        /* No results */
+        #noResultsCond {
+            display: none;
+            text-align: center;
+            padding: 60px 0;
+            color: var(--gray-400);
+        }
+
+        /* Dark mode cards */
+        body.dark .cond-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark .cond-card-name { color: #f1f5f9; }
+        body.dark .cond-card-desc { color: #64748b; }
+        body.dark .group-title { color: #475569; border-color: #334155; }
+        body.dark .cond-info-banner { background: #1e293b; border-color: #334155; }
+        body.dark .cond-info-text h5 { color: #f1f5f9; }
+        body.dark .cond-info-text p { color: #64748b; }
+        body.dark .cond-search-wrap input { background: #1e293b; color: #e2e8f0; }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── Navbar ── -->
+    <nav class="medistore-nav">
+        <a href="index.html" class="nav-logo">
+            <div class="logo-icon">M</div>
+            <span class="logo-text">Medi<span>Store</span></span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link-item">Home</a>
+            <a href="products.html" class="nav-link-item">Products</a>
+            <a href="conditions.html" class="nav-link-item active">Conditions</a>
+            <button id="darkToggle" class="dark-toggle-btn" onclick="toggleMode()" title="Toggle dark mode">🌙</button>
+            <div id="navUserArea"></div>
+            <a href="cart.html" class="nav-cart-btn">
+                <i class="fa fa-shopping-cart"></i> Cart
+                <span class="cart-badge" id="cartCount">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ── Hero ── -->
+    <div class="cond-hero">
+        <div class="container cond-hero-inner">
+            <div class="cond-breadcrumb">
+                <a href="index.html"><i class="fa fa-home"></i> Home</a>
+                <span class="sep">/</span>
+                <span class="current">Health Conditions</span>
+            </div>
+            <div class="row align-items-center g-4">
+                <div class="col-lg-6">
+                    <div class="section-tag" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);margin-bottom:14px;">Browse by Condition</div>
+                    <h1 class="cond-hero-title">Explore by Health<br>Condition</h1>
+                    <p class="cond-hero-sub">Find the right medicines for your specific health needs — trusted, genuine, and delivered fast.</p>
+                    <div class="cond-search-wrap">
+                        <input type="text" id="condSearchInput" placeholder="Search a condition… e.g. Fever, Diabetes" oninput="searchConditions()">
+                        <span class="cond-search-icon"><i class="fa fa-search"></i></span>
+                    </div>
+                </div>
+                <div class="col-lg-6 d-none d-lg-flex justify-content-end">
+                    <div class="cond-stat-row">
+                        <div class="cond-stat">
+                            <div class="num">12+</div>
+                            <div class="lbl">Conditions</div>
+                        </div>
+                        <div class="cond-stat">
+                            <div class="num">500+</div>
+                            <div class="lbl">Medicines</div>
+                        </div>
+                        <div class="cond-stat">
+                            <div class="num">24hr</div>
+                            <div class="lbl">Delivery</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Conditions Grid ── -->
+    <section class="section-gap">
+        <div class="container">
+
+            <!-- Info banner -->
+            <div class="cond-info-banner">
+                <div class="cond-info-icon">💊</div>
+                <div class="cond-info-text">
+                    <h5>Consult a doctor for prescription medicines</h5>
+                    <p>Some medicines marked <strong>Rx</strong> require a valid prescription. Always consult a qualified healthcare professional before starting any medication.</p>
+                </div>
+            </div>
+
+            <!-- No results message -->
+            <div id="noResultsCond">
+                <div style="font-size:3rem;margin-bottom:12px">🔍</div>
+                <div style="font-weight:600;font-size:1rem;color:var(--gray-600)">No condition found</div>
+                <div style="font-size:0.85rem;margin-top:4px">Try a different search term</div>
+            </div>
+
+            <!-- Group 1: Respiratory & ENT -->
+            <div class="mb-5 cond-group">
+                <div class="group-title">🫁 Respiratory & ENT</div>
+                <div class="row g-3" id="groupRespiratory">
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="cold cough respiratory ent">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#dbeafe">🤧</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Cold & Cough</div>
+                                <div class="cond-card-desc">Runny nose, sneezing, dry or wet cough relief</div>
+                                <span class="cond-card-count">35+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="asthma breathing respiratory">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#e0f2fe">🌬️</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Asthma & Breathing</div>
+                                <div class="cond-card-desc">Inhalers, nebulizers, bronchodilators</div>
+                                <span class="cond-card-count">20+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="allergy sinus ent nose">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#fce7f3">🌸</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Allergies & Sinusitis</div>
+                                <div class="cond-card-desc">Antihistamines, nasal sprays, decongestants</div>
+                                <span class="cond-card-count">18+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group 2: Cardiovascular & Metabolic -->
+            <div class="mb-5 cond-group">
+                <div class="group-title">❤️ Cardiovascular & Metabolic</div>
+                <div class="row g-3" id="groupCardio">
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="blood pressure bp heart cardiovascular hypertension">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#fee2e2">❤️</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Blood Pressure (BP)</div>
+                                <div class="cond-card-desc">Antihypertensives, diuretics, beta-blockers</div>
+                                <span class="cond-card-count">40+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="diabetes sugar blood glucose metabolic">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#fef3c7">🩸</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Diabetes / Blood Sugar</div>
+                                <div class="cond-card-desc">Oral hypoglycemics, insulin, glucometers</div>
+                                <span class="cond-card-count">50+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="cholesterol lipid cardiovascular heart">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#fde8d4">🫀</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Cholesterol</div>
+                                <div class="cond-card-desc">Statins, fibrates, lipid-lowering drugs</div>
+                                <span class="cond-card-count">22+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group 3: Pain & Fever -->
+            <div class="mb-5 cond-group">
+                <div class="group-title">🌡️ Pain & Fever</div>
+                <div class="row g-3" id="groupPain">
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="fever temperature pain paracetamol">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#dcfce7">🌡️</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Fever</div>
+                                <div class="cond-card-desc">Paracetamol, ibuprofen, antipyretics</div>
+                                <span class="cond-card-count">30+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="headache migraine pain neuro">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#ede9fe">🧠</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Headache & Migraine</div>
+                                <div class="cond-card-desc">Triptans, NSAIDs, migraine patches</div>
+                                <span class="cond-card-count">25+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="joint pain arthritis muscle body">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#f0fdf4">🦴</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Joint & Muscle Pain</div>
+                                <div class="cond-card-desc">Anti-inflammatory, pain gels, supplements</div>
+                                <span class="cond-card-count">28+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group 4: Digestive & Gut -->
+            <div class="mb-5 cond-group">
+                <div class="group-title">🫃 Digestive & Gut Health</div>
+                <div class="row g-3" id="groupDigestive">
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="stomach digestion acidity gastric gut">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#fce7f3">🫃</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Acidity & Stomach</div>
+                                <div class="cond-card-desc">Antacids, PPIs, H2 blockers, digestive enzymes</div>
+                                <span class="cond-card-count">32+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="diarrhea vomiting nausea gut digestion">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#f0fdf4">🤢</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Diarrhea & Vomiting</div>
+                                <div class="cond-card-desc">ORS, antiemetics, antidiarrheals, probiotics</div>
+                                <span class="cond-card-count">20+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="constipation gut bowel digestion">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#fef3c7">💊</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Constipation</div>
+                                <div class="cond-card-desc">Laxatives, stool softeners, fiber supplements</div>
+                                <span class="cond-card-count">14+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group 5: Skin & Eye -->
+            <div class="mb-5 cond-group">
+                <div class="group-title">🧴 Skin, Eye & Hair</div>
+                <div class="row g-3" id="groupSkin">
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="skin rash eczema derma acne infection">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#fce7f3">🧴</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Skin Conditions</div>
+                                <div class="cond-card-desc">Rash, eczema, acne, fungal creams, moisturizers</div>
+                                <span class="cond-card-count">45+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="eye drops vision eye infection">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#dbeafe">👁️</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Eye Care</div>
+                                <div class="cond-card-desc">Eye drops, lubricants, infection treatments</div>
+                                <span class="cond-card-count">16+ medicines</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="col-lg-4 col-md-6 cond-item" data-name="hair loss vitamins nutrition supplement">
+                        <a href="products.html" class="cond-card">
+                            <div class="cond-card-icon" style="background:#fef9ec">💪</div>
+                            <div class="cond-card-body">
+                                <div class="cond-card-name">Vitamins & Nutrition</div>
+                                <div class="cond-card-desc">Multivitamins, Iron, Calcium, Vitamin D & B12</div>
+                                <span class="cond-card-count">60+ products</span>
+                            </div>
+                            <span class="cond-card-arrow"><i class="fa fa-chevron-right"></i></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ── Footer ── -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="footer-brand">
+                        <div class="logo-text">Medi<span>Store</span></div>
+                    </div>
+                    <p class="footer-desc">Your trusted online pharmacy. Quality medicines delivered to your doorstep, fast & safe.</p>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="footer-heading">Quick Links</div>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="conditions.html">Conditions</a></li>
+                        <li><a href="cart.html">Cart</a></li>
+                        <li><a href="checkout.html">Checkout</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="footer-heading">Categories</div>
+                    <ul class="footer-links">
+                        <li><a href="products.html">Tablets</a></li>
+                        <li><a href="products.html">Syrups</a></li>
+                        <li><a href="products.html">Vitamins</a></li>
+                        <li><a href="products.html">Devices</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <div class="footer-heading">Contact Us</div>
+                    <ul class="footer-links">
+                        <li><a href="#">📧 support@medistore.in</a></li>
+                        <li><a href="#">📞 1800-123-4567</a></li>
+                        <li><a href="#">🕗 Mon–Sat, 9am – 6pm</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2025 MediStore. All rights reserved.</span>
+                <span>Made with ❤️ for better health</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ── Google Account Picker ── -->
+    <div class="google-picker-overlay" id="googlePickerOverlay" onclick="handlePickerOverlayClick(event)">
+        <div class="google-picker-card" id="googlePickerCard">
+            <div class="google-picker-header">
+                <div class="google-picker-logo">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    <span>Google</span>
+                </div>
+                <h3>Choose an account</h3>
+                <p>to continue to MediStore</p>
+            </div>
+            <div class="google-accounts-list" id="googleAccountsList"></div>
+            <hr class="google-picker-divider">
+            <button class="google-picker-add-btn" onclick="addAnotherGoogleAccount()">
+                <div class="google-picker-add-icon">➕</div>
+                Use another account
+            </button>
+            <div class="google-picker-footer">
+                <button class="google-picker-cancel" onclick="closeGooglePicker()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Auth Modal ── -->
+    <div class="auth-modal-overlay" id="authModal" onclick="handleOverlayClick(event)">
+        <div class="auth-modal-card">
+            <div class="auth-modal-header">
+                <div class="auth-modal-logo">M</div>
+                <div class="auth-modal-title">Welcome to MediStore</div>
+                <div class="auth-modal-subtitle">Login or create an account to continue</div>
+                <button class="auth-modal-close" onclick="closeAuthModal()">✕</button>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab auth-tab-active" id="loginTab" onclick="switchTab('login')">Login</button>
+                <button class="auth-tab" id="signupTab" onclick="switchTab('signup')">Sign Up</button>
+            </div>
+            <p class="auth-error" id="authError" style="padding:10px 24px 0;"></p>
+            <form class="auth-form-wrap" id="loginForm" onsubmit="handleLogin(event)">
+                <div class="auth-input-group"><label class="auth-label">Email</label><input type="email" class="auth-input" id="loginEmail" placeholder="you@example.com" required></div>
+                <div class="auth-input-group"><label class="auth-label">Password</label><input type="password" class="auth-input" id="loginPassword" placeholder="Your password" required></div>
+                <button type="submit" class="auth-submit-btn"><i class="fa fa-sign-in-alt"></i> Login</button>
+                <button type="button" class="google-auth-btn" onclick="mockGoogleAuth()"><svg class="google-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Continue with Google</button>
+                <p style="text-align:center;font-size:0.82rem;color:var(--gray-500);margin:0;">No account? <button type="button" onclick="switchTab('signup')" style="background:none;border:none;color:var(--green-600);font-weight:700;cursor:pointer;font-size:0.82rem;padding:0;">Sign Up</button></p>
+            </form>
+            <form class="auth-form-wrap" id="signupForm" style="display:none;" onsubmit="handleSignup(event)">
+                <div class="auth-input-group"><label class="auth-label">Full Name</label><input type="text" class="auth-input" id="signupName" placeholder="Ravi Kumar" required></div>
+                <div class="auth-input-group"><label class="auth-label">Email</label><input type="email" class="auth-input" id="signupEmail" placeholder="you@example.com" required></div>
+                <div class="auth-input-group"><label class="auth-label">Password</label><input type="password" class="auth-input" id="signupPassword" placeholder="Min. 6 characters" required minlength="6"></div>
+                <div class="auth-input-group"><label class="auth-label">Confirm Password</label><input type="password" class="auth-input" id="signupConfirm" placeholder="Repeat password" required></div>
+                <button type="submit" class="auth-submit-btn"><i class="fa fa-user-plus"></i> Create Account</button>
+                <button type="button" class="google-auth-btn" onclick="mockGoogleAuth()"><svg class="google-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Continue with Google</button>
+                <p style="text-align:center;font-size:0.82rem;color:var(--gray-500);margin:0;">Have account? <button type="button" onclick="switchTab('login')" style="background:none;border:none;color:var(--green-600);font-weight:700;cursor:pointer;font-size:0.82rem;padding:0;">Login</button></p>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/script.js"></script>
+    <script>
+        function handleOverlayClick(e) {
+            if (e.target === document.getElementById('authModal')) closeAuthModal();
+        }
+
+        function searchConditions() {
+            const q = document.getElementById('condSearchInput').value.toLowerCase().trim();
+            const items = document.querySelectorAll('.cond-item');
+            let visible = 0;
+
+            items.forEach(item => {
+                const name = (item.getAttribute('data-name') || '').toLowerCase();
+                const show = !q || name.includes(q);
+                item.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            // Hide empty group labels if all cards in group are hidden
+            document.querySelectorAll('.cond-group').forEach(group => {
+                const anyVisible = [...group.querySelectorAll('.cond-item')].some(i => i.style.display !== 'none');
+                group.style.display = anyVisible ? '' : 'none';
+            });
+
+            document.getElementById('noResultsCond').style.display = visible === 0 ? 'block' : 'none';
+        }
+    </script>
+
+</body>
+
+</html>

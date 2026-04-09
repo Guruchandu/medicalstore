@@ -23,7 +23,7 @@
         <div class="nav-links">
             <a href="index.html" class="nav-link-item active">Home</a>
             <a href="products.html" class="nav-link-item">Products</a>
-            <a href="#conditions" class="nav-link-item">Conditions</a>
+            <a href="conditions.html" class="nav-link-item">Conditions</a>
             <button id="darkToggle" class="dark-toggle-btn" onclick="toggleMode()" title="Toggle dark mode">🌙</button>
             <div id="navUserArea"></div>
             <a href="cart.html" class="nav-cart-btn">
@@ -44,7 +44,7 @@
                         best prices — fast, safe & reliable.</p>
                     <div class="hero-actions">
                         <a href="products.html" class="btn-hero-primary"><i class="fa fa-pills"></i> Shop Now</a>
-                        <a href="#conditions" class="btn-hero-secondary"><i class="fa fa-stethoscope"></i> Browse
+                        <a href="conditions.html" class="btn-hero-secondary"><i class="fa fa-stethoscope"></i> Browse
                             Conditions</a>
                     </div>
                     <div class="hero-stats">
@@ -65,8 +65,7 @@
                 <div class="col-md-6">
                     <div class="hero-img-wrap">
                         <div class="hero-img-glow"></div>
-                        <img src="../public/paracetamol-tablet-500-mg-500x500.webp" class="hero-img"
-                            alt="Paracetamol 500mg Tablet">
+                        <img src="../public/hero.png" class="hero-img" alt="Paracetamol 500mg Tablet">
                     </div>
                 </div>
             </div>
@@ -146,64 +145,6 @@
         </div>
     </section>
 
-    <hr class="divider">
-
-    <!-- ── Health Conditions ── -->
-    <section class="section-gap" id="conditions">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-tag">Health Conditions</div>
-                <h2 class="section-title">Explore by Condition</h2>
-                <p class="section-subtitle">Find the right medicines for your health needs</p>
-            </div>
-            <div class="row g-3">
-                <div class="col-md-4 col-sm-6">
-                    <a href="products.html" class="condition-card">
-                        <div class="condition-icon" style="background:#dbeafe">🤧</div>
-                        <div class="condition-name">Cold &amp; Cough</div>
-                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
-                    </a>
-                </div>
-                <div class="col-md-4 col-sm-6">
-                    <a href="products.html" class="condition-card">
-                        <div class="condition-icon" style="background:#fee2e2">❤️</div>
-                        <div class="condition-name">Blood Pressure (BP)</div>
-                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
-                    </a>
-                </div>
-                <div class="col-md-4 col-sm-6">
-                    <a href="products.html" class="condition-card">
-                        <div class="condition-icon" style="background:#fef3c7">🩸</div>
-                        <div class="condition-name">Diabetes / Sugar</div>
-                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
-                    </a>
-                </div>
-                <div class="col-md-4 col-sm-6">
-                    <a href="products.html" class="condition-card">
-                        <div class="condition-icon" style="background:#dcfce7">🌡️</div>
-                        <div class="condition-name">Fever</div>
-                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
-                    </a>
-                </div>
-                <div class="col-md-4 col-sm-6">
-                    <a href="products.html" class="condition-card">
-                        <div class="condition-icon" style="background:#ede9fe">🧠</div>
-                        <div class="condition-name">Headache</div>
-                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
-                    </a>
-                </div>
-                <div class="col-md-4 col-sm-6">
-                    <a href="products.html" class="condition-card">
-                        <div class="condition-icon" style="background:#fce7f3">🫃</div>
-                        <div class="condition-name">Stomach &amp; Digestion</div>
-                        <span class="condition-arrow"><i class="fa fa-chevron-right"></i></span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <hr class="divider">
 
     <!-- ── Popular Medicines ── -->
     <section class="section-gap">
@@ -290,6 +231,7 @@
                     <ul class="footer-links">
                         <li><a href="index.html">Home</a></li>
                         <li><a href="products.html">Products</a></li>
+                        <li><a href="conditions.html">Conditions</a></li>
                         <li><a href="cart.html">Cart</a></li>
                         <li><a href="checkout.html">Checkout</a></li>
                     </ul>
@@ -322,6 +264,44 @@
     <!-- Toast container -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- ── Google Account Picker ── -->
+    <div class="google-picker-overlay" id="googlePickerOverlay" onclick="handlePickerOverlayClick(event)">
+        <div class="google-picker-card" id="googlePickerCard">
+            <!-- Header -->
+            <div class="google-picker-header">
+                <div class="google-picker-logo">
+                    <!-- Google 'G' Logo SVG -->
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    <span>Google</span>
+                </div>
+                <h3>Choose an account</h3>
+                <p>to continue to MediStore</p>
+            </div>
+
+            <!-- Accounts List -->
+            <div class="google-accounts-list" id="googleAccountsList">
+                <!-- Populated dynamically by JS -->
+            </div>
+
+            <!-- Divider + Add Account -->
+            <hr class="google-picker-divider">
+            <button class="google-picker-add-btn" onclick="addAnotherGoogleAccount()">
+                <div class="google-picker-add-icon">➕</div>
+                Use another account
+            </button>
+
+            <!-- Footer -->
+            <div class="google-picker-footer">
+                <button class="google-picker-cancel" onclick="closeGooglePicker()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ── Auth Modal ── -->
     <div class="auth-modal-overlay" id="authModal" onclick="handleOverlayClick(event)">
         <div class="auth-modal-card">
@@ -351,7 +331,16 @@
                     <i class="fa fa-sign-in-alt"></i> Login
                 </button>
                 <button type="button" class="google-auth-btn" onclick="mockGoogleAuth()">
-                    <svg class="google-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    <svg class="google-logo" viewBox="0 0 24 24">
+                        <path fill="#4285F4"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+                        <path fill="#EA4335"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                    </svg>
                     Continue with Google
                 </button>
                 <div class="auth-divider">or</div>
@@ -376,7 +365,8 @@
                 </div>
                 <div class="auth-input-group">
                     <label class="auth-label">Password</label>
-                    <input type="password" class="auth-input" id="signupPassword" placeholder="Min. 6 characters" required minlength="6">
+                    <input type="password" class="auth-input" id="signupPassword" placeholder="Min. 6 characters"
+                        required minlength="6">
                 </div>
                 <div class="auth-input-group">
                     <label class="auth-label">Confirm Password</label>
@@ -386,7 +376,16 @@
                     <i class="fa fa-user-plus"></i> Create Account
                 </button>
                 <button type="button" class="google-auth-btn" onclick="mockGoogleAuth()">
-                    <svg class="google-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    <svg class="google-logo" viewBox="0 0 24 24">
+                        <path fill="#4285F4"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+                        <path fill="#EA4335"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                    </svg>
                     Continue with Google
                 </button>
                 <div class="auth-divider">or</div>

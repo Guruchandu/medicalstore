@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Browse all medicines on MediStore – tablets, syrups, vitamins and more at the best prices.">
+    <title>Products – MediStore</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="medistore-nav">
+    <a href="index.html" class="nav-logo">
+        <div class="logo-icon">M</div>
+        <span class="logo-text">Medi<span>Store</span></span>
+    </a>
+    <div class="nav-links">
+        <a href="index.html"    class="nav-link-item">Home</a>
+        <a href="products.html" class="nav-link-item active">Products</a>
+        <a href="conditions.html" class="nav-link-item">Conditions</a>
+        <button id="darkToggle" class="dark-toggle-btn" onclick="toggleMode()" title="Toggle dark mode">🌙</button>
+        <div id="navUserArea"></div>
+        <a href="cart.html" class="nav-cart-btn">
+            <i class="fa fa-shopping-cart"></i> Cart
+            <span class="cart-badge" id="cartCount">0</span>
+        </a>
+    </div>
+</nav>
+
+<!-- ── Page Header ── -->
+<div style="background:linear-gradient(135deg,#0f7a45,#22c55e);padding:40px 0 32px;color:white;">
+    <div class="container">
+        <div class="section-tag" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3)">All Products</div>
+        <h1 style="font-size:2rem;font-weight:800;margin-top:8px;letter-spacing:-0.5px">Browse Medicines</h1>
+        <p style="opacity:0.85;margin-top:6px;font-size:0.95rem">Genuine products · Best prices · Fast delivery</p>
+    </div>
+</div>
+
+<!-- ── Search & Filter ── -->
+<div style="background:white;border-bottom:1px solid var(--gray-200);padding:18px 0;">
+    <div class="container">
+        <div class="d-flex flex-wrap gap-3 align-items-center justify-content-between">
+            <div class="d-flex gap-2 align-items-center" style="flex:1;min-width:220px">
+                <div class="search-wrap" style="flex:1">
+                    <input type="text" id="searchInput" placeholder="Search medicines, vitamins…" oninput="filterProducts()">
+                    <span class="search-icon"><i class="fa fa-search"></i></span>
+                </div>
+                <!-- Camera / Scan Prescription Button -->
+                <button class="rx-scan-btn" id="rxScanBtn" onclick="document.getElementById('rxFileInput').click()" title="Scan Prescription">
+                    <i class="fa fa-camera"></i>
+                    <span>Scan Rx</span>
+                </button>
+                <!-- Hidden file input — capture="environment" opens rear camera on mobile -->
+                <input type="file" id="rxFileInput" accept="image/*" capture="environment" style="display:none" onchange="handlePrescriptionScan(event)">
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="filter-btn active" onclick="filterBy('all', this)">All</button>
+                <button class="filter-btn" onclick="filterBy('otc', this)">OTC</button>
+                <button class="filter-btn" onclick="filterBy('vitamins', this)">Vitamins</button>
+                <button class="filter-btn" onclick="filterBy('syrup', this)">Syrups</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Prescription Scanner Modal ── -->
+<div class="rx-modal-overlay" id="rxModal">
+    <div class="rx-modal-card" id="rxModalCard">
+        <!-- Scanning State -->
+        <div id="rxScanningState">
+            <div class="rx-scanner-ring">
+                <div class="rx-scan-line"></div>
+                <i class="fa fa-file-medical" style="font-size:2.4rem;color:var(--green-500);position:relative;z-index:1"></i>
+            </div>
+            <h3 class="rx-modal-title">Scanning Prescription…</h3>
+            <p class="rx-modal-sub">Analysing your prescription to find matching medicines</p>
+            <div class="rx-progress-bar"><div class="rx-progress-fill" id="rxProgressFill"></div></div>
+            <div class="rx-steps" id="rxSteps">
+                <div class="rx-step" id="step1"><i class="fa fa-circle-notch fa-spin"></i> Reading prescription image</div>
+                <div class="rx-step dimmed" id="step2"><i class="fa fa-circle-notch"></i> Detecting medicine names</div>
+                <div class="rx-step dimmed" id="step3"><i class="fa fa-circle-notch"></i> Matching with inventory</div>
+            </div>
+        </div>
+        <!-- Results State -->
+        <div id="rxResultsState" style="display:none">
+            <div class="rx-result-header">
+                <div class="rx-result-icon">✅</div>
+                <h3 class="rx-modal-title">Prescription Scanned!</h3>
+                <p class="rx-modal-sub" id="rxResultDesc">Found matching medicines</p>
+            </div>
+            <div class="rx-preview-wrap">
+                <img id="rxPreviewImg" src="" alt="Prescription" class="rx-preview-img">
+                <div class="rx-detected-tags" id="rxDetectedTags"></div>
+            </div>
+            <div id="rxMatchedMeds" class="rx-matched-list"></div>
+            <div class="rx-modal-footer">
+                <button class="rx-btn-primary" onclick="applyRxResults()"><i class="fa fa-check"></i> Show in Products</button>
+                <button class="rx-btn-secondary" onclick="closeRxModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Prescription Results Banner -->
+<div class="rx-results-banner" id="rxResultsBanner" style="display:none">
+    <div class="container d-flex align-items-center justify-content-between gap-3 flex-wrap">
+        <div class="d-flex align-items-center gap-3">
+            <span style="font-size:1.4rem">💊</span>
+            <div>
+                <div style="font-weight:700;font-size:0.9rem;color:var(--green-800)">Showing prescription matches</div>
+                <div style="font-size:0.78rem;color:var(--green-700)" id="rxBannerSub"></div>
+            </div>
+        </div>
+        <button onclick="clearRxResults()" style="background:none;border:1.5px solid var(--green-400);color:var(--green-700);padding:6px 14px;border-radius:99px;font-size:0.8rem;font-weight:600;cursor:pointer;">
+            <i class="fa fa-times me-1"></i>Clear Filter
+        </button>
+    </div>
+</div>
+
+<style>
+/* ── Rx Scan Button ── */
+.rx-scan-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(109,40,217,0.35);
+}
+.rx-scan-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(109,40,217,0.45);
+    background: linear-gradient(135deg, #6d28d9, #5b21b6);
+}
+.rx-scan-btn i { font-size: 1rem; }
+
+/* ── Modal Overlay ── */
+.rx-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+.rx-modal-overlay.active { display: flex; }
+
+.rx-modal-card {
+    background: white;
+    border-radius: 24px;
+    padding: 36px 32px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    animation: rxSlideIn 0.35s cubic-bezier(.4,0,.2,1);
+}
+@keyframes rxSlideIn {
+    from { transform: translateY(30px) scale(0.96); opacity: 0; }
+    to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ── Scanner Animation ── */
+.rx-scanner-ring {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 3px solid var(--green-100);
+    border-top-color: var(--green-500);
+    animation: rxSpin 1.2s linear infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    position: relative;
+    background: var(--green-50);
+}
+@keyframes rxSpin { to { border-top-color: #7c3aed; transform: rotate(360deg); } }
+
+.rx-scan-line {
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    border: 2px dashed rgba(34,197,94,0.3);
+    animation: rxSpin2 2s linear infinite reverse;
+}
+@keyframes rxSpin2 { to { transform: rotate(360deg); } }
+
+.rx-modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    text-align: center;
+    margin-bottom: 6px;
+}
+.rx-modal-sub {
+    font-size: 0.82rem;
+    color: var(--gray-400);
+    text-align: center;
+    margin-bottom: 22px;
+}
+
+/* Progress bar */
+.rx-progress-bar {
+    height: 6px;
+    background: var(--gray-100);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+.rx-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--green-500), #7c3aed);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+}
+
+/* Steps */
+.rx-steps { display: flex; flex-direction: column; gap: 10px; }
+.rx-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    padding: 8px 14px;
+    background: var(--green-50);
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+.rx-step.dimmed { opacity: 0.4; background: var(--gray-50); }
+.rx-step.done { color: var(--green-700); background: var(--green-50); }
+.rx-step.done i { color: var(--green-600); }
+
+/* Results */
+.rx-result-icon { font-size: 2.5rem; text-align: center; margin-bottom: 8px; }
+.rx-result-header { text-align: center; margin-bottom: 18px; }
+
+.rx-preview-wrap {
+    border: 1.5px solid var(--gray-200);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+.rx-preview-img {
+    width: 100%;
+    max-height: 160px;
+    object-fit: cover;
+    display: block;
+}
+.rx-detected-tags {
+    padding: 10px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: var(--gray-50);
+    border-top: 1px solid var(--gray-100);
+}
+.rx-tag {
+    background: #ede9fe;
+    color: #6d28d9;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 99px;
+}
+
+/* Matched medicines list */
+.rx-matched-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; max-height: 220px; overflow-y: auto; }
+.rx-med-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--green-50);
+    border: 1.5px solid var(--green-100);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.rx-med-row:hover { border-color: var(--green-500); box-shadow: 0 4px 12px rgba(34,197,94,0.15); }
+.rx-med-icon { font-size: 1.4rem; flex-shrink: 0; }
+.rx-med-name { font-weight: 600; font-size: 0.88rem; color: var(--gray-900); }
+.rx-med-desc { font-size: 0.74rem; color: var(--gray-500); }
+.rx-med-price { margin-left: auto; font-weight: 700; color: var(--green-700); font-size: 0.9rem; white-space: nowrap; }
+
+/* Footer buttons */
+.rx-modal-footer { display: flex; gap: 10px; }
+.rx-btn-primary {
+    flex: 1;
+    background: linear-gradient(135deg, var(--green-500), var(--green-700));
+    color: white;
+    border: none;
+    padding: 11px;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+.rx-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(22,163,74,0.4); }
+.rx-btn-secondary {
+    padding: 11px 18px;
+    background: var(--gray-100);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.rx-btn-secondary:hover { background: var(--gray-200); }
+
+/* Results Banner */
+.rx-results-banner {
+    background: linear-gradient(135deg, var(--green-50), #ede9fe);
+    border-bottom: 2px solid var(--green-200);
+    padding: 12px 0;
+}
+
+/* Filter btn (existing) */
+.filter-btn {
+    padding: 7px 18px;
+    border-radius: 99px;
+    border: 1.5px solid var(--gray-200);
+    background: white;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.filter-btn:hover, .filter-btn.active {
+    background: var(--green-600);
+    color: white;
+    border-color: var(--green-600);
+}
+body.dark .filter-btn { background:#1e293b; border-color:#334155; color:#94a3b8; }
+body.dark .filter-btn:hover, body.dark .filter-btn.active { background:var(--green-600); color:white; border-color:var(--green-600); }
+
+/* Dark mode for Rx scanner */
+body.dark .rx-modal-card { background: #1e293b; }
+body.dark .rx-modal-title { color: #f1f5f9; }
+body.dark .rx-step { background: #0f172a; color: #94a3b8; }
+body.dark .rx-step.done { background: rgba(34,197,94,0.1); color: var(--green-400); }
+body.dark .rx-med-row { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.2); }
+body.dark .rx-med-name { color: #f1f5f9; }
+body.dark .rx-progress-bar { background: #334155; }
+body.dark .rx-preview-wrap { border-color: #334155; }
+body.dark .rx-detected-tags { background: #0f172a; border-color: #334155; }
+body.dark .rx-btn-secondary { background: #334155; color: #94a3b8; }
+body.dark .rx-btn-secondary:hover { background: #475569; }
+</style>
+
+<!-- ── Products Grid ── -->
+<section class="section-gap">
+    <div class="container">
+        <div class="row g-4" id="productsGrid">
+
+            <div class="col-lg-3 col-md-4 col-sm-6 product-item" data-category="otc" data-name="paracetamol fever pain">
+                <div class="product-card">
+                    <div class="product-card-img-wrap">
+                        <img src="../public/paracetamol-tablet-500-mg-500x500.webp" alt="Paracetamol 500mg">
+                    </div>
+                    <div class="product-card-body">
+                        <span class="product-badge badge-otc">OTC</span>
+                        <div class="product-name">Paracetamol 500mg</div>
+                        <div class="product-desc">Fever & pain relief · Strip of 10</div>
+                        <div class="product-footer">
+                            <div class="product-price">₹50 <span class="old-price">₹65</span></div>
+                            <button class="btn-add-cart" onclick="addToCart('Paracetamol 500mg', 50)">
+                                <i class="fa fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6 product-item" data-category="syrup" data-name="cough syrup cold">
+                <div class="product-card">
+                    <div class="product-card-img-wrap">
+                        <img src="../public/cough.png" alt="Cough Syrup">
+                    </div>
+                    <div class="product-card-body">
+                        <span class="product-badge badge-otc">OTC</span>
+                        <div class="product-name">Cough Syrup 100ml</div>
+                        <div class="product-desc">Relieves dry & wet cough</div>
+                        <div class="product-footer">
+                            <div class="product-price">₹120 <span class="old-price">₹150</span></div>
+                            <button class="btn-add-cart" onclick="addToCart('Cough Syrup', 120)">
+                                <i class="fa fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6 product-item" data-category="vitamins" data-name="vitamin c immunity">
+                <div class="product-card">
+                    <div class="product-card-img-wrap" style="background:#fef9ec">
+                        <div style="font-size:5rem">🍊</div>
+                    </div>
+                    <div class="product-card-body">
+                        <span class="product-badge badge-new">NEW</span>
+                        <div class="product-name">Vitamin C 1000mg</div>
+                        <div class="product-desc">Immunity booster · 30 tablets</div>
+                        <div class="product-footer">
+                            <div class="product-price">₹200 <span class="old-price">₹250</span></div>
+                            <button class="btn-add-cart" onclick="addToCart('Vitamin C 1000mg', 200)">
+                                <i class="fa fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6 product-item" data-category="vitamins" data-name="vitamin d3 bone">
+                <div class="product-card">
+                    <div class="product-card-img-wrap" style="background:#fef3c7">
+                        <div style="font-size:5rem">☀️</div>
+                    </div>
+                    <div class="product-card-body">
+                        <span class="product-badge badge-rx">Rx</span>
+                        <div class="product-name">Vitamin D3 60K IU</div>
+                        <div class="product-desc">Bone & immunity health · 4 capsules</div>
+                        <div class="product-footer">
+                            <div class="product-price">₹180 <span class="old-price">₹220</span></div>
+                            <button class="btn-add-cart" onclick="addToCart('Vitamin D3', 180)">
+                                <i class="fa fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6 product-item" data-category="otc" data-name="antacid stomach acidity">
+                <div class="product-card">
+                    <div class="product-card-img-wrap" style="background:#f0fdf4">
+                        <div style="font-size:5rem">🫃</div>
+                    </div>
+                    <div class="product-card-body">
+                        <span class="product-badge badge-otc">OTC</span>
+                        <div class="product-name">Antacid Syrup 200ml</div>
+                        <div class="product-desc">Relieves acidity & heartburn</div>
+                        <div class="product-footer">
+                            <div class="product-price">₹95 <span class="old-price">₹115</span></div>
+                            <button class="btn-add-cart" onclick="addToCart('Antacid Syrup', 95)">
+                                <i class="fa fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6 product-item" data-category="otc" data-name="ibuprofen pain headache">
+                <div class="product-card">
+                    <div class="product-card-img-wrap" style="background:#eff6ff">
+                        <div style="font-size:5rem">💊</div>
+                    </div>
+                    <div class="product-card-body">
+                        <span class="product-badge badge-otc">OTC</span>
+                        <div class="product-name">Ibuprofen 400mg</div>
+                        <div class="product-desc">Pain & inflammation relief · 10 tabs</div>
+                        <div class="product-footer">
+                            <div class="product-price">₹35 <span class="old-price">₹45</span></div>
+                            <button class="btn-add-cart" onclick="addToCart('Ibuprofen 400mg', 35)">
+                                <i class="fa fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6 product-item" data-category="vitamins" data-name="multivitamin health">
+                <div class="product-card">
+                    <div class="product-card-img-wrap" style="background:#ede9fe">
+                        <div style="font-size:5rem">💪</div>
+                    </div>
+                    <div class="product-card-body">
+                        <span class="product-badge badge-new">NEW</span>
+                        <div class="product-name">Multivitamin Daily</div>
+                        <div class="product-desc">Complete nutrition · 60 tablets</div>
+                        <div class="product-footer">
+                            <div class="product-price">₹350 <span class="old-price">₹420</span></div>
+                            <button class="btn-add-cart" onclick="addToCart('Multivitamin', 350)">
+                                <i class="fa fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-4 col-sm-6 product-item" data-category="otc" data-name="antiseptic cream wound">
+                <div class="product-card">
+                    <div class="product-card-img-wrap" style="background:#fce7f3">
+                        <div style="font-size:5rem">🩹</div>
+                    </div>
+                    <div class="product-card-body">
+                        <span class="product-badge badge-otc">OTC</span>
+                        <div class="product-name">Antiseptic Cream 30g</div>
+                        <div class="product-desc">For wounds & minor cuts</div>
+                        <div class="product-footer">
+                            <div class="product-price">₹75 <span class="old-price">₹90</span></div>
+                            <button class="btn-add-cart" onclick="addToCart('Antiseptic Cream', 75)">
+                                <i class="fa fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- No results message -->
+        <div id="noResults" style="display:none;text-align:center;padding:60px 0;color:var(--gray-400)">
+            <div style="font-size:3rem;margin-bottom:12px">🔍</div>
+            <div style="font-weight:600;font-size:1rem;color:var(--gray-600)">No medicines found</div>
+            <div style="font-size:0.85rem;margin-top:4px">Try a different search term</div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer class="site-footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="footer-brand"><div class="logo-text">Medi<span>Store</span></div></div>
+                <p class="footer-desc">Your trusted online pharmacy. Quality medicines delivered to your doorstep,
+                    fast &amp; safe.</p>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="footer-heading">Quick Links</div>
+                <ul class="footer-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="conditions.html">Conditions</a></li>
+                    <li><a href="cart.html">Cart</a></li>
+                    <li><a href="checkout.html">Checkout</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="footer-heading">Categories</div>
+                <ul class="footer-links">
+                    <li><a href="products.html">Tablets</a></li>
+                    <li><a href="products.html">Syrups</a></li>
+                    <li><a href="products.html">Vitamins</a></li>
+                    <li><a href="products.html">Devices</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <div class="footer-heading">Contact Us</div>
+                <ul class="footer-links">
+                    <li><a href="#">📧 support@medistore.in</a></li>
+                    <li><a href="#">📞 1800-123-4567</a></li>
+                    <li><a href="#">🕗 Mon–Sat, 9am – 6pm</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2025 MediStore. All rights reserved.</span>
+            <span>Made with ❤️ for better health</span>
+        </div>
+    </div>
+</footer>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ── Google Account Picker ── -->
+<div class="google-picker-overlay" id="googlePickerOverlay" onclick="handlePickerOverlayClick(event)">
+    <div class="google-picker-card" id="googlePickerCard">
+        <div class="google-picker-header">
+            <div class="google-picker-logo">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                <span>Google</span>
+            </div>
+            <h3>Choose an account</h3>
+            <p>to continue to MediStore</p>
+        </div>
+        <div class="google-accounts-list" id="googleAccountsList"></div>
+        <hr class="google-picker-divider">
+        <button class="google-picker-add-btn" onclick="addAnotherGoogleAccount()">
+            <div class="google-picker-add-icon">➕</div>
+            Use another account
+        </button>
+        <div class="google-picker-footer">
+            <button class="google-picker-cancel" onclick="closeGooglePicker()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Auth Modal ── -->
+<div class="auth-modal-overlay" id="authModal" onclick="handleOverlayClick(event)">
+    <div class="auth-modal-card">
+        <div class="auth-modal-header">
+            <div class="auth-modal-logo">M</div>
+            <div class="auth-modal-title">Welcome to MediStore</div>
+            <div class="auth-modal-subtitle">Login or create an account</div>
+            <button class="auth-modal-close" onclick="closeAuthModal()">✕</button>
+        </div>
+        <div class="auth-tabs">
+            <button class="auth-tab auth-tab-active" id="loginTab" onclick="switchTab('login')">Login</button>
+            <button class="auth-tab" id="signupTab" onclick="switchTab('signup')">Sign Up</button>
+        </div>
+        <p class="auth-error" id="authError" style="padding:10px 24px 0;"></p>
+        <form class="auth-form-wrap" id="loginForm" onsubmit="handleLogin(event)">
+            <div class="auth-input-group"><label class="auth-label">Email</label><input type="email" class="auth-input" id="loginEmail" placeholder="you@example.com" required></div>
+            <div class="auth-input-group"><label class="auth-label">Password</label><input type="password" class="auth-input" id="loginPassword" placeholder="Your password" required></div>
+            <button type="submit" class="auth-submit-btn"><i class="fa fa-sign-in-alt"></i> Login</button>
+            <button type="button" class="google-auth-btn" onclick="mockGoogleAuth()"><svg class="google-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Continue with Google</button>
+            <p style="text-align:center;font-size:0.82rem;color:var(--gray-500);margin:0;">No account? <button type="button" onclick="switchTab('signup')" style="background:none;border:none;color:var(--green-600);font-weight:700;cursor:pointer;font-size:0.82rem;padding:0;">Sign Up</button></p>
+        </form>
+        <form class="auth-form-wrap" id="signupForm" style="display:none;" onsubmit="handleSignup(event)">
+            <div class="auth-input-group"><label class="auth-label">Full Name</label><input type="text" class="auth-input" id="signupName" placeholder="Ravi Kumar" required></div>
+            <div class="auth-input-group"><label class="auth-label">Email</label><input type="email" class="auth-input" id="signupEmail" placeholder="you@example.com" required></div>
+            <div class="auth-input-group"><label class="auth-label">Password</label><input type="password" class="auth-input" id="signupPassword" placeholder="Min. 6 characters" required minlength="6"></div>
+            <div class="auth-input-group"><label class="auth-label">Confirm Password</label><input type="password" class="auth-input" id="signupConfirm" placeholder="Repeat password" required></div>
+            <button type="submit" class="auth-submit-btn"><i class="fa fa-user-plus"></i> Create Account</button>
+            <button type="button" class="google-auth-btn" onclick="mockGoogleAuth()"><svg class="google-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Continue with Google</button>
+            <p style="text-align:center;font-size:0.82rem;color:var(--gray-500);margin:0;">Have account? <button type="button" onclick="switchTab('login')" style="background:none;border:none;color:var(--green-600);font-weight:700;cursor:pointer;font-size:0.82rem;padding:0;">Login</button></p>
+        </form>
+    </div>
+</div>
+
+<script src="../js/script.js"></script>
+<script>
+function handleOverlayClick(e) {
+    if (e.target === document.getElementById('authModal')) closeAuthModal();
+}
+</script>
+<script>
+/* ════════════════════════════════
+   PRODUCT FILTER
+════════════════════════════════ */
+function filterProducts() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const items = document.querySelectorAll('.product-item');
+    let visible = 0;
+    items.forEach(item => {
+        const name = item.getAttribute('data-name') || '';
+        const show = !q || name.includes(q);
+        item.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+}
+
+function filterBy(cat, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const items = document.querySelectorAll('.product-item');
+    let visible = 0;
+    items.forEach(item => {
+        const show = cat === 'all' || item.getAttribute('data-category') === cat;
+        item.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+}
+
+/* ════════════════════════════════
+   PRESCRIPTION SCANNER
+════════════════════════════════ */
+
+// Medicine database — maps keywords to products shown on page
+const RX_MEDICINE_DB = [
+    {
+        keywords: ['paracetamol','para','fever','pain','antipyretic','pcm','dolo','calpol'],
+        name: 'Paracetamol 500mg',
+        desc: 'Fever & pain relief · Strip of 10',
+        price: '₹50',
+        icon: '💊',
+        category: 'otc',
+        dataName: 'paracetamol fever pain'
+    },
+    {
+        keywords: ['cough','syrup','cold','benadryl','corex','dextromethorphan','expectorant'],
+        name: 'Cough Syrup 100ml',
+        desc: 'Relieves dry & wet cough',
+        price: '₹120',
+        icon: '🧴',
+        category: 'syrup',
+        dataName: 'cough syrup cold'
+    },
+    {
+        keywords: ['vitamin','vitamin c','ascorbic','immunity','zinc','citrus','c1000'],
+        name: 'Vitamin C 1000mg',
+        desc: 'Immunity booster · 30 tablets',
+        price: '₹200',
+        icon: '🍊',
+        category: 'vitamins',
+        dataName: 'vitamin c immunity'
+    },
+    {
+        keywords: ['vitamin d','vit d','d3','calcirol','bone','cholecalciferol','sunshine'],
+        name: 'Vitamin D3 60K IU',
+        desc: 'Bone & immunity health · 4 capsules',
+        price: '₹180',
+        icon: '☀️',
+        category: 'vitamins',
+        dataName: 'vitamin d3 bone'
+    },
+    {
+        keywords: ['antacid','acidity','heartburn','stomach','omeprazole','pantoprazole','gelusil','eno'],
+        name: 'Antacid Syrup 200ml',
+        desc: 'Relieves acidity & heartburn',
+        price: '₹95',
+        icon: '🫃',
+        category: 'otc',
+        dataName: 'antacid stomach acidity'
+    },
+    {
+        keywords: ['ibuprofen','ibuprofin','brufen','advil','inflammation','nsaid','muscle','joint'],
+        name: 'Ibuprofen 400mg',
+        desc: 'Pain & inflammation relief · 10 tabs',
+        price: '₹35',
+        icon: '💊',
+        category: 'otc',
+        dataName: 'ibuprofen pain headache'
+    },
+    {
+        keywords: ['multivitamin','multi','complete','daily','health','supplement','nutrition'],
+        name: 'Multivitamin Daily',
+        desc: 'Complete nutrition · 60 tablets',
+        price: '₹350',
+        icon: '💪',
+        category: 'vitamins',
+        dataName: 'multivitamin health'
+    },
+    {
+        keywords: ['antiseptic','wound','cut','betadine','dettol','cream','ointment','antibiotic'],
+        name: 'Antiseptic Cream 30g',
+        desc: 'For wounds & minor cuts',
+        price: '₹75',
+        icon: '🩹',
+        category: 'otc',
+        dataName: 'antiseptic cream wound'
+    }
+];
+
+let rxMatchedResults = [];
+
+function handlePrescriptionScan(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Reset input so same file can be re-selected
+    event.target.value = '';
+
+    // Show modal in scanning state
+    document.getElementById('rxScanningState').style.display = 'block';
+    document.getElementById('rxResultsState').style.display = 'none';
+    document.getElementById('rxModal').classList.add('active');
+
+    // Read image for preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('rxPreviewImg').src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    // Run animated scan steps
+    runScanAnimation(file);
+}
+
+function runScanAnimation(file) {
+    const fill = document.getElementById('rxProgressFill');
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+
+    // Reset
+    fill.style.width = '0%';
+    [step1, step2, step3].forEach(s => { s.classList.remove('done'); s.classList.add('dimmed'); });
+    step1.classList.remove('dimmed');
+
+    // Step 1: Reading image (0–40%)
+    setTimeout(() => { fill.style.width = '40%'; }, 100);
+    setTimeout(() => {
+        step1.classList.add('done');
+        step1.querySelector('i').className = 'fa fa-check-circle';
+        step2.classList.remove('dimmed');
+        step2.querySelector('i').className = 'fa fa-circle-notch fa-spin';
+        fill.style.width = '65%';
+    }, 1000);
+
+    // Step 2: Detecting medicines (40–70%)
+    setTimeout(() => {
+        step2.classList.add('done');
+        step2.querySelector('i').className = 'fa fa-check-circle';
+        step3.classList.remove('dimmed');
+        step3.querySelector('i').className = 'fa fa-circle-notch fa-spin';
+        fill.style.width = '88%';
+    }, 2000);
+
+    // Step 3: Matching (70–100%) → show results
+    setTimeout(() => {
+        step3.classList.add('done');
+        step3.querySelector('i').className = 'fa fa-check-circle';
+        fill.style.width = '100%';
+        setTimeout(() => showRxResults(file), 400);
+    }, 3000);
+}
+
+function detectKeywords(filename) {
+    // Extract keywords from filename (lowercased, split by non-alpha chars)
+    const raw = filename.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+    const words = raw.split(/\s+/).filter(w => w.length > 2);
+
+    // Match against medicine keyword database
+    const matched = [];
+    const usedMeds = new Set();
+
+    RX_MEDICINE_DB.forEach(med => {
+        if (usedMeds.has(med.name)) return;
+        const hit = med.keywords.some(kw => words.some(w => w.includes(kw) || kw.includes(w)));
+        if (hit) {
+            matched.push(med);
+            usedMeds.add(med.name);
+        }
+    });
+
+    // If no keyword match, pick 2–4 random medicines (simulate smart scan)
+    if (matched.length === 0) {
+        const shuffled = [...RX_MEDICINE_DB].sort(() => Math.random() - 0.5);
+        const count = 2 + Math.floor(Math.random() * 3); // 2–4
+        shuffled.slice(0, count).forEach(m => matched.push(m));
+    }
+
+    return matched;
+}
+
+function showRxResults(file) {
+    const matched = detectKeywords(file.name);
+    rxMatchedResults = matched;
+
+    // Show detected keyword tags from filename
+    const tagsEl = document.getElementById('rxDetectedTags');
+    tagsEl.innerHTML = '';
+    const raw = file.name.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+    const displayTags = raw.slice(0, 5);
+    if (displayTags.length === 0) displayTags.push('prescription', 'medicine');
+    displayTags.forEach(tag => {
+        const span = document.createElement('span');
+        span.className = 'rx-tag';
+        span.textContent = tag;
+        tagsEl.appendChild(span);
+    });
+
+    // Render matched medicines
+    const medList = document.getElementById('rxMatchedMeds');
+    medList.innerHTML = '';
+    matched.forEach(med => {
+        const row = document.createElement('div');
+        row.className = 'rx-med-row';
+        row.innerHTML = `
+            <div class="rx-med-icon">${med.icon}</div>
+            <div>
+                <div class="rx-med-name">${med.name}</div>
+                <div class="rx-med-desc">${med.desc}</div>
+            </div>
+            <div class="rx-med-price">${med.price}</div>`;
+        medList.appendChild(row);
+    });
+
+    document.getElementById('rxResultDesc').textContent =
+        `Found ${matched.length} matching medicine${matched.length !== 1 ? 's' : ''} for your prescription`;
+
+    // Switch to results view
+    document.getElementById('rxScanningState').style.display = 'none';
+    document.getElementById('rxResultsState').style.display = 'block';
+}
+
+function applyRxResults() {
+    closeRxModal();
+
+    // Hide all products, then show only matched
+    const items = document.querySelectorAll('.product-item');
+    const matchedNames = rxMatchedResults.map(m => m.dataName);
+
+    let visible = 0;
+    items.forEach(item => {
+        const dname = (item.getAttribute('data-name') || '').toLowerCase();
+        const show = matchedNames.some(mn => dname === mn);
+        item.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+
+    // Show results banner
+    const banner = document.getElementById('rxResultsBanner');
+    banner.style.display = 'block';
+    document.getElementById('rxBannerSub').textContent =
+        `${visible} medicine${visible !== 1 ? 's' : ''} matched from your prescription`;
+
+    // Scroll to products
+    document.getElementById('productsGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clearRxResults() {
+    document.getElementById('rxResultsBanner').style.display = 'none';
+    rxMatchedResults = [];
+    // Show all products
+    document.querySelectorAll('.product-item').forEach(i => i.style.display = '');
+    document.getElementById('noResults').style.display = 'none';
+    // Reset filter buttons
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.filter-btn').classList.add('active');
+}
+
+function closeRxModal() {
+    document.getElementById('rxModal').classList.remove('active');
+}
+</script>
+</body>
+</html>
