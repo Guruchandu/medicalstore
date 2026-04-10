@@ -1,4 +1,4 @@
-const API_URL = '/api';
+const API_URL = 'http://localhost:5000/api';
 let ALL_PRODUCTS = [];
 
 /* ─── Cart ─── */
@@ -111,7 +111,7 @@ async function apiPlaceOrder(orderData) {
     try {
         const res = await fetch(`${API_URL}/orders`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${getToken()}`
             },
@@ -119,12 +119,12 @@ async function apiPlaceOrder(orderData) {
         });
         const data = await res.json();
         if (!res.ok) return { ok: false, msg: data.message || 'Order failed' };
-        
+
         // Clear cart locally
         cart = [];
         localStorage.setItem('cart', JSON.stringify(cart));
         updateCartBadge();
-        
+
         return { ok: true, order: data };
     } catch (err) {
         return { ok: false, msg: 'Server error. Please try again.' };
@@ -176,7 +176,7 @@ async function saveUser(name, email, password) {
         });
         const data = await res.json();
         if (!res.ok) return { ok: false, msg: data.message || 'Signup failed' };
-        
+
         localStorage.setItem('ms_user_token', data.token);
         localStorage.setItem('ms_user', JSON.stringify({ name: data.name, email: data.email }));
         return { ok: true };
@@ -194,7 +194,7 @@ async function loginUser(email, password) {
         });
         const data = await res.json();
         if (!res.ok) return { ok: false, msg: data.message || 'Login failed' };
-        
+
         localStorage.setItem('ms_user_token', data.token);
         localStorage.setItem('ms_user', JSON.stringify({ name: data.name, email: data.email }));
         return { ok: true, user: data };
@@ -356,13 +356,13 @@ function addChatMessage(text, sender) {
 async function renderReorderSection() {
     const container = document.getElementById('reorderContainer');
     if (!container || !isLoggedIn()) return;
-    
+
     try {
         const res = await fetch(`${API_URL}/orders/myorders`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         });
         const orders = await res.json();
-        
+
         const items = [];
         orders.forEach(o => {
             o.orderItems.forEach(i => {
@@ -403,11 +403,11 @@ async function renderReorderSection() {
 async function renderSuggestionsSection() {
     const container = document.getElementById('suggestionsContainer');
     if (!container) return;
-    
+
     try {
         const res = await fetch(`${API_URL}/products`);
         const suggestions = await res.json();
-        
+
         if (suggestions.length === 0) {
             container.style.display = 'none';
             return;
@@ -461,7 +461,7 @@ async function saveReview(productId, rating, comment) {
     try {
         const res = await fetch(`${API_URL}/products/${productId}/reviews`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${getToken()}`
             },
@@ -519,7 +519,7 @@ function updateNavUser() {
                     </button>
                 </div>
             </div>`;
-        
+
         // Setup dropdown listener
         const btn = document.getElementById('profileBtn');
         if (btn) btn.addEventListener('click', toggleUserDropdown);
@@ -595,7 +595,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const btn = document.getElementById('darkToggle');
         if (btn) btn.textContent = '☀️';
     }
-    
+
     // Fetch products to have IDs available
     try {
         const res = await fetch(`${API_URL}/products`);
