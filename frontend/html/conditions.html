@@ -1071,6 +1071,7 @@
         const grid = document.getElementById('medGrid');
         grid.innerHTML = '';
         data.medicines.forEach(med => {
+            const fullName = `${med.name} ${med.dose}`;
             const item = document.createElement('div');
             item.className = 'med-item';
             item.innerHTML = `
@@ -1081,12 +1082,17 @@
                         <span class="med-item-price">₹${med.price}</span>
                         <span class="med-item-type ${med.type === 'OTC' ? 'med-type-otc' : 'med-type-rx'}">${med.type}</span>
                     </div>
-                    <button class="med-add-btn" onclick="addToCart('${med.name} ${med.dose}', ${med.price})" title="Add to cart">
-                        <i class="fa fa-plus"></i>
-                    </button>
+                    <div class="qty-container" data-product-name="${fullName}" data-product-price="${med.price}" data-product-img="">
+                        <button class="med-add-btn" onclick="addToCart('${fullName.replace(/'/g, "\\'")}', ${med.price})" title="Add to cart">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </div>
                 </div>`;
             grid.appendChild(item);
         });
+
+        // Sync quantities for the newly rendered modal items
+        syncQuantityUI();
 
         document.getElementById('medModal').classList.add('active');
         document.body.style.overflow = 'hidden';

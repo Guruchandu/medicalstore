@@ -27,9 +27,12 @@ MediStore is a premium, professional-grade medical store website designed to pro
 ## 🛠️ Technology Stack
 
 -   **Frontend**: HTML5, CSS3 (Vanilla), JavaScript (Vanilla)
+-   **Backend**: Node.js, Express.js
+-   **Database**: MongoDB (Mongoose)
+-   **Authentication**: JSON Web Tokens (JWT) & Mock Google Auth
 -   **Icons**: Font Awesome 6
 -   **Typography**: Google Fonts (Poppins, Inter, Outfit)
--   **Storage**: Browser `localStorage` for cart, orders, wishlist, and session persistence.
+-   **Storage**: MongoDB (Cloud/Local) & Browser `localStorage` for session persistence.
 
 ## 🏁 Getting Started
 

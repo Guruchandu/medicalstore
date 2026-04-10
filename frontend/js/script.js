@@ -1,11 +1,80 @@
+const API_URL = 'http://localhost:5000/api';
+let ALL_PRODUCTS = [];
+
 /* ─── Cart ─── */
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-function addToCart(name, price) {
-    cart.push({ name, price });
+// Migration: If cart items don't have quantities, convert them
+if (cart.length > 0 && typeof cart[0].quantity === 'undefined') {
+    const newCart = [];
+    cart.forEach(item => {
+        const existing = newCart.find(i => i.name === item.name);
+        if (existing) {
+            existing.quantity++;
+        } else {
+            newCart.push({ ...item, quantity: 1 });
+        }
+    });
+    cart = newCart;
+    localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+function addToCart(name, price, img = '') {
+    const existing = cart.find(i => i.name === name);
+    if (existing) {
+        existing.quantity++;
+    } else {
+        cart.push({ name, price, quantity: 1, img });
+    }
     localStorage.setItem('cart', JSON.stringify(cart));
     showToast('🛒 ' + name + ' added to cart!');
     updateCartBadge();
+    syncQuantityUI();
+}
+
+function removeFromCart(name) {
+    const idx = cart.findIndex(i => i.name === name);
+    if (idx > -1) {
+        if (cart[idx].quantity > 1) {
+            cart[idx].quantity--;
+        } else {
+            cart.splice(idx, 1);
+        }
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartBadge();
+        syncQuantityUI();
+        // If we are on the cart page, this might be called, but cart page usually has its own render
+        if (typeof renderCart === 'function') renderCart();
+    }
+}
+
+function getQuantity(name) {
+    const item = cart.find(i => i.name === name);
+    return item ? item.quantity : 0;
+}
+
+function syncQuantityUI() {
+    const containers = document.querySelectorAll('.qty-container');
+    containers.forEach(container => {
+        const name = container.getAttribute('data-product-name');
+        const price = parseFloat(container.getAttribute('data-product-price'));
+        const img = container.getAttribute('data-product-img') || '';
+        const qty = getQuantity(name);
+
+        if (qty > 0) {
+            container.innerHTML = `
+                <div class="qty-controls">
+                    <button class="qty-btn minus" onclick="removeFromCart('${name.replace(/'/g, "\\'")}')">−</button>
+                    <span class="qty-num">${qty}</span>
+                    <button class="qty-btn" onclick="addToCart('${name.replace(/'/g, "\\'")}', ${price}, '${img.replace(/'/g, "\\'")}')">+</button>
+                </div>`;
+        } else {
+            container.innerHTML = `
+                <button class="btn-add-cart" onclick="addToCart('${name.replace(/'/g, "\\'")}', ${price}, '${img.replace(/'/g, "\\'")}')">
+                    <i class="fa fa-plus"></i> Add
+                </button>`;
+        }
+    });
 }
 
 /* ─── Wishlist ─── */
@@ -33,7 +102,32 @@ function updateCartBadge() {
     const badge = document.getElementById('cartCount');
     if (badge) {
         const c = JSON.parse(localStorage.getItem('cart')) || [];
-        badge.textContent = c.length;
+        const totalQty = c.reduce((acc, item) => acc + (item.quantity || 1), 0);
+        badge.textContent = totalQty;
+    }
+}
+
+async function apiPlaceOrder(orderData) {
+    try {
+        const res = await fetch(`${API_URL}/orders`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getToken()}`
+            },
+            body: JSON.stringify(orderData)
+        });
+        const data = await res.json();
+        if (!res.ok) return { ok: false, msg: data.message || 'Order failed' };
+        
+        // Clear cart locally
+        cart = [];
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartBadge();
+        
+        return { ok: true, order: data };
+    } catch (err) {
+        return { ok: false, msg: 'Server error. Please try again.' };
     }
 }
 
@@ -61,7 +155,7 @@ function showToast(message, duration = 3000) {
 
 /* ─── Auth Helpers ─── */
 function isLoggedIn() {
-    return !!localStorage.getItem('ms_user');
+    return !!localStorage.getItem('ms_user_token');
 }
 
 function getUser() {
@@ -69,23 +163,44 @@ function getUser() {
     return u ? JSON.parse(u) : null;
 }
 
-function saveUser(name, email, password) {
-    // Store user (simple demo auth using localStorage)
-    const users = JSON.parse(localStorage.getItem('ms_users') || '[]');
-    const exists = users.find(u => u.email === email);
-    if (exists) return { ok: false, msg: 'Email already registered. Please login.' };
-    users.push({ name, email, password });
-    localStorage.setItem('ms_users', JSON.stringify(users));
-    localStorage.setItem('ms_user', JSON.stringify({ name, email }));
-    return { ok: true };
+function getToken() {
+    return localStorage.getItem('ms_user_token');
 }
 
-function loginUser(email, password) {
-    const users = JSON.parse(localStorage.getItem('ms_users') || '[]');
-    const user = users.find(u => u.email === email && u.password === password);
-    if (!user) return { ok: false, msg: 'Invalid email or password.' };
-    localStorage.setItem('ms_user', JSON.stringify({ name: user.name, email: user.email }));
-    return { ok: true, user };
+async function saveUser(name, email, password) {
+    try {
+        const res = await fetch(`${API_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) return { ok: false, msg: data.message || 'Signup failed' };
+        
+        localStorage.setItem('ms_user_token', data.token);
+        localStorage.setItem('ms_user', JSON.stringify({ name: data.name, email: data.email }));
+        return { ok: true };
+    } catch (err) {
+        return { ok: false, msg: 'Server error. Please try again later.' };
+    }
+}
+
+async function loginUser(email, password) {
+    try {
+        const res = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) return { ok: false, msg: data.message || 'Login failed' };
+        
+        localStorage.setItem('ms_user_token', data.token);
+        localStorage.setItem('ms_user', JSON.stringify({ name: data.name, email: data.email }));
+        return { ok: true, user: data };
+    } catch (err) {
+        return { ok: false, msg: 'Server error. Please try again later.' };
+    }
 }
 
 /* ─── Google Account Picker ─── */
@@ -179,30 +294,203 @@ function addAnotherGoogleAccount() {
     selectGoogleAccount(name.trim(), email.trim(), color);
 }
 
-
 function logoutUser() {
     localStorage.removeItem('ms_user');
+    localStorage.removeItem('ms_user_token');
     location.reload();
 }
 
+
+/* ─── AI Chatbot (MediBot) ─── */
+const CHAT_RESPONSES = {
+    "hello": "Hello! I'm MediBot, your health assistant. How can I help you today?",
+    "hi": "Hi there! Looking for some specific medicine or health advice?",
+    "fever": "For fever, I recommend Paracetamol or Ibuprofen. You can find them in our 'Tablets' section.",
+    "headache": "Paracetamol 500mg is great for headaches. Would you like me to find it for you?",
+    "pain": "We have various pain relievers like Diclofenac gel or Aceclofenac tablets. Please consult a doctor if pain persists.",
+    "cough": "For a dry cough, Grilinctus is popular. For a wet cough, Ascoril is often recommended. Check 'Syrups'.",
+    "vitamin": "Vitamins are essential! We have Multivitamins, Vitamin C, and Calcium supplements available.",
+    "delivery": "We offer free delivery on orders above ₹499! Most orders arrive within 24-48 hours.",
+    "thank": "You're welcome! Stay healthy!",
+    "bye": "Goodbye! Have a great day!",
+    "order": "You can view your orders in the Dashboard. If you want to reorder, check the homepage!"
+};
+
+function toggleChat() {
+    const win = document.getElementById('chatWindow');
+    if (win) win.classList.toggle('active');
+}
+
+function processChat(e) {
+    if (e && e.key !== 'Enter') return;
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim().toLowerCase();
+    if (!msg) return;
+
+    addChatMessage(input.value, 'user');
+    input.value = '';
+
+    setTimeout(() => {
+        let response = "I'm not sure about that. Try asking about fever, cough, vitamins, or delivery!";
+        for (const key in CHAT_RESPONSES) {
+            if (msg.includes(key)) {
+                response = CHAT_RESPONSES[key];
+                break;
+            }
+        }
+        addChatMessage(response, 'bot');
+    }, 600);
+}
+
+function addChatMessage(text, sender) {
+    const chatBody = document.getElementById('chatMessages');
+    if (!chatBody) return;
+    const div = document.createElement('div');
+    div.className = `message ${sender}-msg`;
+    div.textContent = text;
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+/* ─── Reorder & Suggestions logic ─── */
+async function renderReorderSection() {
+    const container = document.getElementById('reorderContainer');
+    if (!container || !isLoggedIn()) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/orders/myorders`, {
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        const orders = await res.json();
+        
+        const items = [];
+        orders.forEach(o => {
+            o.orderItems.forEach(i => {
+                if (!items.find(x => x.name === i.name)) items.push(i);
+            });
+        });
+
+        const products = items.slice(0, 4);
+        if (products.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        container.style.display = 'block';
+        const grid = document.getElementById('reorderGrid');
+        grid.innerHTML = products.map(p => `
+            <div class="col-md-3 col-6">
+                <div class="product-card">
+                    <div class="product-card-img-wrap" style="height:120px;display:flex;align-items:center;justify-content:center;background:#f8fafc;">
+                        ${p.image ? `<img src="${p.image}" style="height:80px;object-fit:contain;">` : `<span style="font-size:2rem">💊</span>`}
+                    </div>
+                    <div class="product-card-body">
+                        <div class="product-name" style="font-size:0.85rem;height:auto;margin-bottom:8px;">${p.name}</div>
+                        <div class="product-footer">
+                            <div class="product-price">₹${p.price}</div>
+                            <button class="btn-add-cart" onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.price}, '${(p.image || '').replace(/'/g, "\\'")}')" style="padding:6px 12px;font-size:0.75rem;">
+                                <i class="fa fa-sync"></i> Reorder
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error('Failed to load reorder items');
+    }
+}
+
+async function renderSuggestionsSection() {
+    const container = document.getElementById('suggestionsContainer');
+    if (!container) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/products`);
+        const suggestions = await res.json();
+        
+        if (suggestions.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+        const grid = document.getElementById('suggestionsGrid');
+        grid.innerHTML = suggestions.slice(0, 4).map(p => `
+            <div class="col-md-3 col-6">
+                <div class="product-card">
+                    <div class="product-card-img-wrap" style="height:120px;display:flex;align-items:center;justify-content:center;background:#f8fafc;">
+                        ${p.img ? `<img src="${p.img}" style="height:80px;object-fit:contain;">` : `<span style="font-size:2rem">📦</span>`}
+                    </div>
+                    <div class="product-card-body">
+                        <div class="product-name" style="font-size:0.85rem;height:auto;margin-bottom:8px;">${p.name}</div>
+                        <div class="product-footer">
+                            <div class="product-price">₹${p.price}</div>
+                            <button class="btn-add-cart" onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.price}, '${(p.img || '').replace(/'/g, "\\'")}')" style="padding:6px 12px;font-size:0.75rem;">
+                                <i class="fa fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error('Failed to load suggestions');
+    }
+}
+
+/* ─── Address Management Helpers ─── */
+function getAddresses() {
+    return JSON.parse(localStorage.getItem('medistore_addresses') || '[]');
+}
+
+function saveAddress(addr) {
+    const addrs = getAddresses();
+    addrs.push({ id: Date.now(), ...addr });
+    localStorage.setItem('medistore_addresses', JSON.stringify(addrs));
+    showToast('🏠 Address saved successfully!');
+}
+
+function deleteAddress(id) {
+    const addrs = getAddresses().filter(a => a.id !== id);
+    localStorage.setItem('medistore_addresses', JSON.stringify(addrs));
+    showToast('🗑️ Address deleted');
+}
+
+/* ─── Rating & Review System ─── */
+async function saveReview(productId, rating, comment) {
+    try {
+        const res = await fetch(`${API_URL}/products/${productId}/reviews`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getToken()}`
+            },
+            body: JSON.stringify({ rating, comment })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        showToast('⭐ Thank you for your review!');
+    } catch (err) {
+        showToast('⚠️ Failed to save review');
+    }
+}
+
+async function getReviews(productId) {
+    try {
+        const res = await fetch(`${API_URL}/products/${productId}/reviews`);
+        return await res.json();
+    } catch (err) {
+        return [];
+    }
+}
+
+/* ─── Update Navbar user state ─── */
 function toggleUserDropdown(e) {
     if (e) e.stopPropagation();
     const menu = document.getElementById('userDropdownMenu');
     if (menu) menu.classList.toggle('active');
 }
 
-// Close dropdown when clicking outside
-window.addEventListener('click', (e) => {
-    const menu = document.getElementById('userDropdownMenu');
-    const btn = document.querySelector('.user-dropdown-btn');
-    if (menu && menu.classList.contains('active')) {
-        if (!menu.contains(e.target) && !btn.contains(e.target)) {
-            menu.classList.remove('active');
-        }
-    }
-});
-
-/* ─── Update Navbar user state ─── */
 function updateNavUser() {
     updateCartBadge();
     const userArea = document.getElementById('navUserArea');
@@ -210,47 +498,35 @@ function updateNavUser() {
     const user = getUser();
     if (user) {
         userArea.innerHTML = `
-            <div class="user-dropdown-container">
-                <button class="user-dropdown-btn" onclick="toggleUserDropdown(event)">
-                    <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);
-                        color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;">
-                        ${user.name.charAt(0).toUpperCase()}
-                    </div>
+            <div class="nav-profile-wrap">
+                <button class="profile-trigger" id="profileBtn">
+                    <div class="profile-avatar-small">${user.name.charAt(0).toUpperCase()}</div>
                     <span style="font-size:0.85rem;font-weight:600;color:var(--gray-700);">${user.name.split(' ')[0]}</span>
-                    <i class="fa fa-chevron-down" style="font-size:0.7rem;color:var(--gray-400);"></i>
+                    <i class="fa fa-chevron-down" style="font-size:0.75rem;color:var(--gray-400);"></i>
                 </button>
-                <div class="user-dropdown-menu" id="userDropdownMenu">
-                    <div style="padding:10px 14px;border-bottom:1px solid var(--gray-100);margin-bottom:5px;">
-                        <div style="font-size:0.85rem;font-weight:700;color:var(--gray-900);line-height:1.2;">${user.name}</div>
-                        <div style="font-size:0.75rem;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${user.email}</div>
+                <div class="profile-dropdown" id="userDropdownMenu">
+                    <div style="padding:15px;border-bottom:1px solid var(--gray-100);background:var(--gray-50);">
+                        <div style="font-size:0.88rem;font-weight:700;color:var(--gray-900);">${user.name}</div>
+                        <div style="font-size:0.75rem;color:var(--gray-500);overflow:hidden;text-overflow:ellipsis;">${user.email}</div>
                     </div>
-                    <button class="dropdown-item" onclick="location.href='dashboard.html?tab=profile'">
-                        <i class="fa fa-user-circle"></i> Profile
-                    </button>
-                    <button class="dropdown-item" onclick="location.href='dashboard.html?tab=orders'">
-                        <i class="fa fa-box"></i> My Orders
-                    </button>
-                    <button class="dropdown-item" onclick="location.href='dashboard.html?tab=wishlist'">
-                        <i class="fa fa-heart"></i> Wishlist
-                    </button>
-                    <button class="dropdown-item" onclick="location.href='dashboard.html?tab=tracking'">
-                        <i class="fa fa-truck-fast"></i> Order Tracking
-                    </button>
-                    <div class="dropdown-divider"></div>
-                    <button class="dropdown-item logout-danger" onclick="logoutUser()">
+                    <a href="dashboard.html?tab=profile" class="dropdown-item"><i class="fa fa-user-circle"></i> Profile</a>
+                    <a href="dashboard.html?tab=orders" class="dropdown-item"><i class="fa fa-box"></i> My Orders</a>
+                    <a href="dashboard.html?tab=addresses" class="dropdown-item"><i class="fa fa-map-marker-alt"></i> Saved Addresses</a>
+                    <a href="dashboard.html?tab=wishlist" class="dropdown-item"><i class="fa fa-heart"></i> Wishlist</a>
+                    <div style="height:1px;background:var(--gray-100);margin:5px 0;"></div>
+                    <button class="dropdown-item logout-danger" onclick="logoutUser()" style="width:100%;border:none;background:none;cursor:pointer;">
                         <i class="fa fa-sign-out-alt"></i> Logout
                     </button>
                 </div>
             </div>`;
+        
+        // Setup dropdown listener
+        const btn = document.getElementById('profileBtn');
+        if (btn) btn.addEventListener('click', toggleUserDropdown);
     } else {
         userArea.innerHTML = `
-            <button onclick="openAuthModal('login')" 
-                style="padding:8px 16px;border:1.5px solid var(--green-500);border-radius:8px;background:white;
-                color:var(--green-700);font-family:'Poppins',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;
-                transition:all 0.2s;" 
-                onmouseover="this.style.background='var(--green-50)'"
-                onmouseout="this.style.background='white'">
-                Login / Sign Up
+            <button onclick="openAuthModal('login')" class="profile-trigger" title="Login / Sign Up">
+                <i class="fa fa-user-circle" style="font-size:1.5rem;color:var(--gray-600);"></i>
             </button>`;
     }
 }
@@ -275,11 +551,11 @@ function switchTab(tab) {
     document.getElementById('authError').textContent = '';
 }
 
-function handleLogin(e) {
+async function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    const result = loginUser(email, password);
+    const result = await loginUser(email, password);
     if (!result.ok) {
         document.getElementById('authError').textContent = result.msg;
         return;
@@ -287,11 +563,10 @@ function handleLogin(e) {
     closeAuthModal();
     updateNavUser();
     showToast('👋 Welcome back, ' + result.user.name + '!');
-    // If on checkout page, allow order placement
     if (typeof afterLoginCallback === 'function') afterLoginCallback();
 }
 
-function handleSignup(e) {
+async function handleSignup(e) {
     e.preventDefault();
     const name = document.getElementById('signupName').value.trim();
     const email = document.getElementById('signupEmail').value.trim();
@@ -301,7 +576,7 @@ function handleSignup(e) {
         document.getElementById('authError').textContent = 'Passwords do not match.';
         return;
     }
-    const result = saveUser(name, email, password);
+    const result = await saveUser(name, email, password);
     if (!result.ok) {
         document.getElementById('authError').textContent = result.msg;
         return;
@@ -313,12 +588,24 @@ function handleSignup(e) {
 }
 
 /* ─── Init on page load ─── */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Restore theme
     if (localStorage.getItem('theme') === 'dark') {
         document.body.classList.add('dark');
         const btn = document.getElementById('darkToggle');
         if (btn) btn.textContent = '☀️';
     }
+    
+    // Fetch products to have IDs available
+    try {
+        const res = await fetch(`${API_URL}/products`);
+        ALL_PRODUCTS = await res.json();
+    } catch (err) {
+        console.error('Failed to pre-cache products');
+    }
+
     updateNavUser();
+    syncQuantityUI();
+    renderReorderSection();
+    renderSuggestionsSection();
 });

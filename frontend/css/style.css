@@ -49,7 +49,7 @@ body {
     font-size: 15px;
 }
 
-a { text-decoration: none; }
+a { text-decoration: none !important; }
 
 img { display: block; }
 
@@ -1633,5 +1633,388 @@ body.dark .wishlist-btn-small:hover {
     background: rgba(239, 68, 68, 0.1);
     color: #f87171;
     border-color: #f87171;
+}
+
+/* ══════════════════════════════
+   QUANTITY SELECTOR
+   (Premium E-commerce Style)
+══════════════════════════════ */
+.qty-container {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 10px;
+    height: 38px;
+    background: transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.qty-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--green-50);
+    border: 1.5px solid var(--green-200);
+    border-radius: 10px;
+    padding: 2px;
+    width: 108px;
+    animation: qtyFadeIn 0.3s ease-out;
+}
+
+@keyframes qtyFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.qty-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: none;
+    background: var(--green-600);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.qty-btn:hover {
+    background: var(--green-700);
+    transform: scale(1.05);
+}
+
+.qty-btn:active {
+    transform: scale(0.95);
+}
+
+.qty-btn.minus {
+    background: var(--white);
+    color: var(--green-700);
+    border: 1.5px solid var(--green-200);
+}
+
+.qty-btn.minus:hover {
+    background: var(--green-100);
+}
+
+.qty-num {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--green-800);
+    min-width: 24px;
+    text-align: center;
+    user-select: none;
+}
+
+/* Dark Mode Adjustments */
+body.dark .qty-controls {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+body.dark .qty-num {
+    color: white;
+}
+body.dark .qty-btn.minus {
+    background: #1e293b;
+    border-color: #334155;
+    color: white;
+}
+body.dark .qty-btn.minus:hover {
+    background: #334155;
+}
+
+/* ──────────────────────────────────────────────
+   DARK MODE - GLOBAL TEXT VISIBILITY
+   ────────────────────────────────────────────── */
+body.dark,
+body.dark .hero-title,
+body.dark .section-title,
+body.dark .category-name,
+body.dark .product-name,
+body.dark .stat-num,
+body.dark .stat-label,
+body.dark .cart-item-name,
+body.dark .med-item-name,
+body.dark .nav-link-item,
+body.dark .logo-text,
+body.dark .hero-badge,
+body.dark .section-tag,
+body.dark label,
+body.dark h1, body.dark h2, body.dark h3, body.dark h4, body.dark h5, body.dark h6,
+body.dark strong {
+    color: white !important;
+}
+
+body.dark .hero-subtitle,
+body.dark .section-subtitle,
+body.dark .product-desc,
+body.dark .category-count,
+body.dark .med-item-dose,
+body.dark .footer-desc,
+body.dark .footer-links a,
+body.dark .footer-bottom span,
+body.dark .trust-text small {
+    color: var(--gray-400) !important;
+}
+
+body.dark .medistore-nav,
+body.dark .site-footer,
+body.dark .category-card,
+body.dark .product-card,
+body.dark .form-card,
+body.dark .cart-summary-box {
+    background: #0f172a !important;
+    border-color: #1e293b !important;
+}
+
+/* ──────────────────────────────────────────────
+   PROFILE ICON & DROPDOWN
+   ────────────────────────────────────────────── */
+.nav-profile-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-trigger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 99px;
+    transition: all 0.2s;
+}
+
+.profile-trigger:hover {
+    background: var(--gray-100);
+}
+
+body.dark .profile-trigger:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.profile-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--green-500), var(--green-700));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 200px;
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    margin-top: 8px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1100;
+}
+
+.profile-dropdown.active {
+    display: flex;
+}
+
+body.dark .profile-dropdown {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.dropdown-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--gray-700);
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-decoration: none !important;
+    transition: all 0.15s;
+}
+
+.dropdown-item:hover {
+    background: var(--green-50);
+    color: var(--green-700);
+}
+
+body.dark .dropdown-item {
+    color: #cbd5e1;
+}
+
+body.dark .dropdown-item:hover {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--green-400);
+}
+
+/* ──────────────────────────────────────────────
+   AI CHATBOT
+   ────────────────────────────────────────────── */
+.chatbot-bubble {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--green-500), var(--green-700));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(22, 163, 74, 0.4);
+    z-index: 2000;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.chatbot-bubble:hover {
+    transform: scale(1.1);
+}
+
+.chatbot-window {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 350px;
+    height: 500px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 2000;
+    border: 1px solid var(--gray-200);
+}
+
+.chatbot-window.active {
+    display: flex;
+}
+
+body.dark .chatbot-window {
+    background: #0f172a;
+    border-color: #1e293b;
+}
+
+.chatbot-header {
+    background: linear-gradient(135deg, var(--green-600), var(--green-700));
+    padding: 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.message {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+}
+
+.bot-msg {
+    background: var(--gray-100);
+    color: var(--gray-800);
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+}
+
+body.dark .bot-msg {
+    background: #1e293b;
+    color: #f1f5f9;
+}
+
+.user-msg {
+    background: var(--green-600);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+}
+
+.chat-input-area {
+    padding: 15px;
+    border-top: 1px solid var(--gray-100);
+    display: flex;
+    gap: 10px;
+}
+
+body.dark .chat-input-area {
+    border-color: #1e293b;
+}
+
+.chat-input {
+    flex: 1;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+body.dark .chat-input {
+    background: #1e293b;
+    border-color: #334155;
+    color: white;
+}
+
+.chat-send-btn {
+    background: var(--green-600);
+    color: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Star Rating */
+.rating-stars {
+    display: flex;
+    gap: 4px;
+    color: var(--amber-400);
+    font-size: 1rem;
+}
+
+.rating-input {
+    display: flex;
+    gap: 8px;
+    font-size: 1.5rem;
+    color: var(--gray-300);
+    cursor: pointer;
+}
+
+.rating-input i.active {
+    color: var(--amber-500);
 }
 

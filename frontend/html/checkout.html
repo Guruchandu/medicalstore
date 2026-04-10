@@ -416,10 +416,28 @@
             finalizeOrder();
         }
 
-        function finalizeOrder() {
-            // Collect cart & pricing
-            const cart     = JSON.parse(localStorage.getItem('cart') || '[]');
-            const subtotal = cart.reduce((s, i) => s + i.price, 0);
+        async function finalizeOrder() {
+            // Collect cart
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            if (cart.length === 0) {
+                showToast('⚠️ Your cart is empty');
+                return;
+            }
+
+            // Map cart items to backend format (finding product IDs from ALL_PRODUCTS cache)
+            const orderItems = cart.map(item => {
+                const prod = ALL_PRODUCTS.find(p => p.name === item.name);
+                return {
+                    name: item.name,
+                    quantity: item.quantity || 1,
+                    price: item.price,
+                    image: item.img,
+                    product: prod ? prod._id : null
+                };
+            });
+
+            // Collect pricing
+            const subtotal = cart.reduce((s, i) => s + (i.price * (i.quantity || 1)), 0);
             const delivery = subtotal >= 499 ? 0 : 49;
             const discount = Math.round(subtotal * 0.05);
             const total    = subtotal - discount + delivery;
@@ -427,33 +445,30 @@
 
             // Collect customer info
             const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
-            const firstName = g('firstName');
-            const lastName  = g('lastName');
-            const phone     = g('phoneField');
-            const email     = g('emailField');
-            const address   = g('addressField');
-            const city      = g('cityField');
-            const state     = g('stateField');
-            const pin       = g('pinField');
-
-            // Save order to localStorage
-            const orders = JSON.parse(localStorage.getItem('medistore_orders') || '[]');
-            orders.push({
-                id          : 'ORD-' + Date.now(),
-                customerName: (firstName + ' ' + lastName).trim() || 'Guest',
-                phone, email,
-                address     : [address, city, state, pin].filter(Boolean).join(', '),
-                items       : cart,
-                subtotal, discount, delivery, total,
+            const orderData = {
+                orderItems,
+                shippingAddress: {
+                    street: g('addressField'),
+                    city: g('cityField'),
+                    state: g('stateField'),
+                    zip: g('pinField')
+                },
                 paymentMethod: payment,
-                status      : 'pending',
-                placedAt    : new Date().toISOString()
-            });
-            localStorage.setItem('medistore_orders', JSON.stringify(orders));
+                totalPrice: total
+            };
 
-            // Clear cart and redirect
-            localStorage.removeItem('cart');
-            window.location.href = 'sucess.html';
+            // Call backend API
+            const btn = e.target || document.querySelector('button[type="submit"]');
+            if (btn) btn.disabled = true;
+            
+            const result = await apiPlaceOrder(orderData);
+            
+            if (result.ok) {
+                window.location.href = 'sucess.html';
+            } else {
+                showToast('❌ ' + result.msg);
+                if (btn) btn.disabled = false;
+            }
         }
 
         function handleOverlayClick(e) {

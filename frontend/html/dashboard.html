@@ -244,6 +244,9 @@
                     <button class="dash-nav-item" onclick="switchDashTab('tracking')" id="btn-tracking">
                         <i class="fa fa-truck-fast"></i> Tracking
                     </button>
+                    <button class="dash-nav-item" onclick="switchDashTab('addresses')" id="btn-addresses">
+                        <i class="fa fa-map-marker-alt"></i> Saved Addresses
+                    </button>
                     <div class="dropdown-divider"></div>
                     <button class="dash-nav-item" style="color:var(--red-500)" onclick="logoutUser()">
                         <i class="fa fa-sign-out-alt"></i> Logout
@@ -306,12 +309,77 @@
                         </div>
                     </div>
 
+                    <!-- Addresses Section -->
+                    <div id="section-addresses" class="dashboard-section">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 style="font-weight:800;margin:0;">Saved Addresses</h3>
+                            <button class="btn-main" style="width:auto;padding:8px 16px;" onclick="openAddressForm()">+ Add New</button>
+                        </div>
+                        <div id="addressBookList" class="row g-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
 
     <!-- ── Footer ── -->
+    <!-- Rating Modal -->
+    <div class="auth-modal-overlay" id="ratingModal" style="display:none;z-index:2000;">
+        <div class="auth-modal-card" style="max-width:400px;">
+            <div class="auth-modal-header">
+                <div class="auth-modal-title">Rate Product</div>
+                <button class="auth-modal-close" onclick="closeRatingModal()">✕</button>
+            </div>
+            <div class="p-4">
+                <div id="ratingProductInfo" class="mb-3" style="font-weight:700;"></div>
+                <div class="rating-input mb-4" id="starInput">
+                    <i class="fa fa-star" data-value="1"></i>
+                    <i class="fa fa-star" data-value="2"></i>
+                    <i class="fa fa-star" data-value="3"></i>
+                    <i class="fa fa-star" data-value="4"></i>
+                    <i class="fa fa-star" data-value="5"></i>
+                </div>
+                <textarea id="ratingComment" class="form-input" style="height:100px;" placeholder="Write your review..."></textarea>
+                <input type="hidden" id="ratingProdId">
+                <button class="btn-main mt-4" onclick="submitRating()">Submit Review</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address Modal -->
+    <div class="auth-modal-overlay" id="addressModal" style="display:none;z-index:2000;">
+        <div class="auth-modal-card" style="max-width:500px;">
+            <div class="auth-modal-header">
+                <div class="auth-modal-title">Save Address</div>
+                <button class="auth-modal-close" onclick="closeAddressModal()">✕</button>
+            </div>
+            <form class="p-4" onsubmit="handleAddressSubmit(event)">
+                <div class="mb-3">
+                    <label class="form-label-custom">Address Title (e.g. Home, Office)</label>
+                    <input type="text" id="addrTitle" class="form-input" required placeholder="Home">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label-custom">Full Address</label>
+                    <textarea id="addrFull" class="form-input" style="height:80px;" required placeholder="Street, Building, Area..."></textarea>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label-custom">City</label>
+                        <input type="text" id="addrCity" class="form-input" required placeholder="Chennai">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label-custom">Pincode</label>
+                        <input type="text" id="addrPin" class="form-input" required placeholder="600001">
+                    </div>
+                </div>
+                <button type="submit" class="btn-main mt-2">Save Address</button>
+            </form>
+        </div>
+    </div>
+
     <footer class="site-footer">
         <div class="container">
             <div class="footer-bottom">
@@ -345,6 +413,7 @@
                 if (tabId === 'orders') renderOrders();
                 if (tabId === 'wishlist') renderWishlist();
                 if (tabId === 'tracking') renderTracking();
+                if (tabId === 'addresses') renderAddresses();
             }
         }
 
@@ -356,31 +425,127 @@
             document.getElementById('profileInitial').textContent = user.name.charAt(0).toUpperCase();
         }
 
-        function renderOrders() {
-            const orders = JSON.parse(localStorage.getItem('medistore_orders') || '[]');
+        async function renderOrders() {
             const container = document.getElementById('ordersList');
-            if (orders.length === 0) {
-                container.innerHTML = '<p class="text-center py-5" style="color:var(--gray-400)">No orders found.</p>';
-                return;
-            }
-            container.innerHTML = orders.reverse().map(ord => `
+            try {
+                const res = await fetch(`${API_URL}/orders/myorders`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const orders = await res.json();
+                
+                if (!orders || orders.length === 0) {
+                    container.innerHTML = '<p class="text-center py-5" style="color:var(--gray-400)">No orders found.</p>';
+                    return;
+                }
+                container.innerHTML = orders.reverse().map(ord => `
                 <div class="order-card">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <div style="font-weight:700;font-size:1.1rem;color:var(--gray-900);">Order #${ord.id}</div>
-                            <div style="font-size:0.8rem;color:var(--gray-400);">${new Date(ord.placedAt).toLocaleDateString()}</div>
+                            <div style="font-weight:700;font-size:1.1rem;color:var(--gray-900);">Order #${ord._id.slice(-6).toUpperCase()}</div>
+                            <div style="font-size:0.8rem;color:var(--gray-400);">${new Date(ord.createdAt).toLocaleDateString()}</div>
                         </div>
-                        <span class="order-status status-${ord.status}">${ord.status}</span>
+                        <span class="order-status status-${ord.status}">${ord.status.toUpperCase()}</span>
                     </div>
                     <div style="font-size:0.88rem;color:var(--gray-600);margin-bottom:12px;">
-                        ${ord.items.map(i => i.name).join(', ')}
+                        ${ord.orderItems.map(i => `
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span>${i.name} × ${i.quantity}</span>
+                                ${ord.status === 'delivered' ? `
+                                    <button class="btn-hero-secondary" style="padding:4px 8px;font-size:0.7rem;border-radius:6px;" 
+                                            onclick="openRatingModal('${i.name.replace(/'/g, "\\'")}')">
+                                        <i class="fa fa-star"></i> Rate
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `).join('')}
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <div style="font-weight:800;color:var(--green-700);">₹${ord.total}</div>
+                        <div style="font-weight:800;color:var(--green-700);">₹${ord.totalPrice}</div>
                         <button class="nav-link-item" style="padding:4px 12px;font-size:0.8rem;">View Details</button>
                     </div>
                 </div>
             `).join('');
+        }
+
+        /* Rating System Logic */
+        let currentRating = 0;
+        function openRatingModal(prodName) {
+            document.getElementById('ratingProductInfo').textContent = prodName;
+            document.getElementById('ratingProdId').value = prodName;
+            document.getElementById('ratingModal').style.display = 'flex';
+            currentRating = 0;
+            updateStarUI();
+        }
+
+        function closeRatingModal() {
+            document.getElementById('ratingModal').style.display = 'none';
+        }
+
+        document.getElementById('starInput').addEventListener('click', (e) => {
+            if (e.target.dataset.value) {
+                currentRating = parseInt(e.target.dataset.value);
+                updateStarUI();
+            }
+        });
+
+        function updateStarUI() {
+            document.querySelectorAll('#starInput i').forEach(star => {
+                star.classList.toggle('active', parseInt(star.dataset.value) <= currentRating);
+            });
+        }
+
+        function submitRating() {
+            const prodName = document.getElementById('ratingProdId').value;
+            const comment = document.getElementById('ratingComment').value;
+            if (currentRating === 0) {
+                showToast('❌ Please select a rating');
+                return;
+            }
+            saveReview(prodName, currentRating, comment);
+            closeRatingModal();
+        }
+
+        /* Address Book Logic */
+        function renderAddresses() {
+            const addrs = getAddresses();
+            const container = document.getElementById('addressBookList');
+            if (addrs.length === 0) {
+                container.innerHTML = '<p class="text-center py-5 col-12" style="color:var(--gray-400)">No saved addresses.</p>';
+                return;
+            }
+            container.innerHTML = addrs.map(a => `
+                <div class="col-md-6">
+                    <div class="order-card h-100">
+                        <div class="d-flex justify-content-between mb-2">
+                            <strong style="color:var(--gray-900);">${a.title}</strong>
+                            <button onclick="deleteAddress(${a.id}); renderAddresses();" style="border:none;background:none;color:var(--red-500);cursor:pointer;">✕</button>
+                        </div>
+                        <p style="font-size:0.85rem;color:var(--gray-600);margin:0;">${a.address}</p>
+                        <p style="font-size:0.85rem;color:var(--gray-500);margin:2px 0 0 0;">${a.city} - ${a.pincode}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openAddressForm() {
+            document.getElementById('addressModal').style.display = 'flex';
+        }
+
+        function closeAddressModal() {
+            document.getElementById('addressModal').style.display = 'none';
+        }
+
+        function handleAddressSubmit(e) {
+            e.preventDefault();
+            const addr = {
+                title: document.getElementById('addrTitle').value,
+                address: document.getElementById('addrFull').value,
+                city: document.getElementById('addrCity').value,
+                pincode: document.getElementById('addrPin').value
+            };
+            saveAddress(addr);
+            closeAddressModal();
+            renderAddresses();
         }
 
         function renderWishlist() {
@@ -411,44 +576,53 @@
             `).join('');
         }
 
-        function renderTracking() {
-            const orders = JSON.parse(localStorage.getItem('medistore_orders') || '[]');
+        async function renderTracking() {
             const container = document.getElementById('trackingContent');
-            if (orders.length === 0) {
-                container.innerHTML = '<p class="text-center py-5" style="color:var(--gray-400)">No active orders to track.</p>';
-                return;
+            try {
+                const res = await fetch(`${API_URL}/orders/myorders`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const orders = await res.json();
+                
+                if (orders.length === 0) {
+                    container.innerHTML = '<p class="text-center py-5" style="color:var(--gray-400)">No active orders to track.</p>';
+                    return;
+                }
+                
+                const latest = orders[orders.length - 1];
+                container.innerHTML = `
+                    <div class="mb-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <div style="font-weight:700;">Tracking ID: MS-${latest._id.slice(-6).toUpperCase()}</div>
+                            <div style="font-size:0.8rem;color:var(--gray-500);">Status: ${latest.status.toUpperCase()}</div>
+                        </div>
+                        <span class="order-status status-shipped">In Transit</span>
+                    </div>
+                    <div class="tracking-timeline">
+                        <div class="timeline-step active">
+                            <div class="timeline-dot"></div>
+                            <div style="font-weight:700;font-size:0.9rem;">Order Placed</div>
+                            <div style="font-size:0.75rem;color:var(--gray-400);">${new Date(latest.createdAt).toLocaleString()}</div>
+                        </div>
+                        <div class="timeline-step active">
+                            <div class="timeline-dot"></div>
+                            <div style="font-weight:700;font-size:0.9rem;">Packed & Shipped</div>
+                            <div style="font-size:0.75rem;color:var(--gray-400);">Package leaves warehouse</div>
+                        </div>
+                        <div class="timeline-step">
+                            <div class="timeline-dot"></div>
+                            <div style="font-weight:700;font-size:0.9rem;">Out for Delivery</div>
+                            <div style="font-size:0.75rem;color:var(--gray-400);">Expected by evening</div>
+                        </div>
+                        <div class="timeline-step" style="padding-bottom:0;">
+                            <div class="timeline-dot"></div>
+                            <div style="font-weight:700;font-size:0.9rem;">Delivered</div>
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                container.innerHTML = '<p class="text-center py-5">Error loading tracking info.</p>';
             }
-            const latest = orders[orders.length - 1];
-            container.innerHTML = `
-                <div class="mb-4 d-flex justify-content-between align-items-center">
-                    <div>
-                        <div style="font-weight:700;">Tracking ID: ${latest.id}</div>
-                        <div style="font-size:0.8rem;color:var(--gray-500);">Last Update: Just now</div>
-                    </div>
-                    <span class="order-status status-shipped">In Transit</span>
-                </div>
-                <div class="tracking-timeline">
-                    <div class="timeline-step active">
-                        <div class="timeline-dot"></div>
-                        <div style="font-weight:700;font-size:0.9rem;">Order Placed</div>
-                        <div style="font-size:0.75rem;color:var(--gray-400);">${new Date(latest.placedAt).toLocaleString()}</div>
-                    </div>
-                    <div class="timeline-step active">
-                        <div class="timeline-dot"></div>
-                        <div style="font-weight:700;font-size:0.9rem;">Packed & Shipped</div>
-                        <div style="font-size:0.75rem;color:var(--gray-400);">Package leaves warehouse</div>
-                    </div>
-                    <div class="timeline-step">
-                        <div class="timeline-dot"></div>
-                        <div style="font-weight:700;font-size:0.9rem;">Out for Delivery</div>
-                        <div style="font-size:0.75rem;color:var(--gray-400);">Expected by evening</div>
-                    </div>
-                    <div class="timeline-step" style="padding-bottom:0;">
-                        <div class="timeline-dot"></div>
-                        <div style="font-weight:700;font-size:0.9rem;">Delivered</div>
-                    </div>
-                </div>
-            `;
         }
 
         document.addEventListener('DOMContentLoaded', () => {

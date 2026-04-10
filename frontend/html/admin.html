@@ -350,6 +350,35 @@
 
         @media(max-width:900px) { .stats-grid { grid-template-columns:repeat(2,1fr); } }
         @media(max-width:640px) { .form-grid { grid-template-columns:1fr; } }
+
+        /* ── GLOBAL UI POLISH ── */
+        a { text-decoration: none !important; }
+        
+        /* High Visibility Dark Mode Overrides (Default state) */
+        body:not(.light), 
+        body:not(.light) .stat-val, 
+        body:not(.light) .sb-brand-title,
+        body:not(.light) .topbar-title, 
+        body:not(.light) .sec-title,
+        body:not(.light) .modal-title, 
+        body:not(.light) strong,
+        body:not(.light) td {
+            color: #ffffff !important;
+        }
+
+        body:not(.light) .stat-label, 
+        body:not(.light) .sb-brand-sub,
+        body:not(.light) .topbar-sub, 
+        body:not(.light) .sec-sub,
+        body:not(.light) .topbar-clock, 
+        body:not(.light) .admin-role,
+        body:not(.light) .nav-item:not(.active), 
+        body:not(.light) .empty-s,
+        body:not(.light) .m-label, 
+        body:not(.light) .f-label,
+        body:not(.light) th {
+            color: #cbd5e1 !important;
+        }
     </style>
 </head>
 <body>
