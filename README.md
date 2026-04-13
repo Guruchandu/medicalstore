@@ -36,11 +36,51 @@ MediStore is a premium, professional-grade medical store website designed to pro
 
 ## 🏁 Getting Started
 
-1.  Clone or download the repository.
-2.  Open `html/index.html` in any modern web browser.
-3.  Enjoy exploring MediStore!
+Follow these steps to get the full application (Frontend + Backend) running on your local machine.
 
-## 🧪 Verification
+### 1. Prerequisites
+- **Node.js**: Installed on your system.
+- **MongoDB**: A local instance running on `mongodb://localhost:27017/medistore` (or update the `.env` file).
+
+### 2. Setup & Backend Execution
+1. Open your terminal at the project root.
+2. Navigate to the backend directory:
+   ```cmd
+   cd backend
+   ```
+3. Install dependencies:
+   ```cmd
+   npm install
+   ```
+4. Start the backend server:
+   ```cmd
+   npm start
+   ```
+   *The server will run on `http://localhost:5000`.*
+
+### 3. Frontend Execution
+You have two ways to run the frontend:
+
+**Option A: Using a Local Server (Recommended)**
+This is required for dynamic features and API interaction.
+```cmd
+# From the project root
+npx live-server frontend
+```
+
+**Option B: Manual Opening**
+Open `frontend/html/index.html` directly in any modern web browser.
+
+---
+
+### 🔑 Admin Credentials
+To access the **Admin Portal** (`frontend/html/admin.html`):
+- **Username:** `admin`
+- **Password:** `admin@123`
+
+---
+
+## 🛠️ Technology Stack
 
 The project has been verified for:
 -   Multi-browser compatibility.
